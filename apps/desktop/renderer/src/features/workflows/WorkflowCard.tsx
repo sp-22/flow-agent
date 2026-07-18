@@ -123,7 +123,7 @@ export function WorkflowCard({ workflow, onOpen, onRun }: WorkflowCardProps): JS
           </Button>
           <Button variant="primary" size="sm" onClick={onRun}>
             <Play size={13} aria-hidden="true" />
-            Run
+            Execute
           </Button>
         </div>
       </div>
