@@ -78,7 +78,7 @@ export function WorkflowCard({ workflow, onOpen, onRun }: WorkflowCardProps): JS
       )}
 
       <div className="flex items-start gap-2 pr-6">
-        <span className="flex items-center leading-none text-high" aria-hidden="true">
+        <span className="flex items-center leading-none" aria-hidden="true">
           <WorkflowIcon name={workflow.icon} size={18} />
         </span>
         {renaming ? (

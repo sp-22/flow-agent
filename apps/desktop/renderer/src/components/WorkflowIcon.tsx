@@ -8,6 +8,13 @@ const ICONS: Record<WorkflowIconName, LucideIcon> = {
   sparkles: Sparkles,
 };
 
+const ICON_COLOR: Record<WorkflowIconName, string> = {
+  rocket: 'text-hold',
+  clipboard: 'text-[#4C8BF5]',
+  money: 'text-go',
+  sparkles: 'text-[#A78BFA]',
+};
+
 export interface WorkflowIconProps {
   name: WorkflowIconName;
   size?: number;
@@ -16,5 +23,7 @@ export interface WorkflowIconProps {
 
 export function WorkflowIcon({ name, size = 16, className }: WorkflowIconProps): JSX.Element {
   const Icon = ICONS[name] ?? Sparkles;
-  return <Icon size={size} className={className} aria-hidden="true" />;
+  const color = ICON_COLOR[name] ?? ICON_COLOR.sparkles;
+  const merged = [color, className].filter(Boolean).join(' ');
+  return <Icon size={size} className={merged} aria-hidden="true" />;
 }
