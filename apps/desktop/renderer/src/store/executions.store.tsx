@@ -23,6 +23,15 @@ function nextDraftId(): string {
   return `task-draft-${draftCounter}`;
 }
 
+function createDraftTask(): Task {
+  return {
+    id: nextDraftId(),
+    title: 'New Task',
+    createdRelative: 'Just now',
+    messages: [],
+  };
+}
+
 export function ExecutionsProvider({ children }: { children: React.ReactNode }): JSX.Element {
   const [tasks, setTasks] = React.useState<Task[]>(() => SEED_TASKS);
   const [activeId, setActiveId] = React.useState<string | null>(SEED_TASKS[0]?.id ?? null);
@@ -35,12 +44,7 @@ export function ExecutionsProvider({ children }: { children: React.ReactNode }):
   }, [tasks, activeId, draftTask]);
 
   const newTask = React.useCallback(() => {
-    const draft: Task = {
-      id: nextDraftId(),
-      title: 'New Task',
-      createdRelative: 'Just now',
-      messages: [],
-    };
+    const draft = createDraftTask();
     setDraftTask(draft);
     setActiveId(draft.id);
     setPendingPrompt('');
@@ -51,6 +55,12 @@ export function ExecutionsProvider({ children }: { children: React.ReactNode }):
   }, []);
 
   const preload = React.useCallback((workflowName: string) => {
+    // Start a fresh task first (same as newTask) so the mention lands in an
+    // empty task's input rather than inside whatever task was previously
+    // active.
+    const draft = createDraftTask();
+    setDraftTask(draft);
+    setActiveId(draft.id);
     setPendingPrompt(`/${workflowName} `);
   }, []);
 

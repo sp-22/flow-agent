@@ -4,7 +4,9 @@ import { Button } from '../../components/Button';
 import { Badge } from '../../components/Badge';
 import { useWorkflows } from '../../store/workflows.store';
 import { useExecutions, type ExecutionsContextValue } from '../../store/executions.store';
+import { runTask } from '../../services/execution.service';
 import { SEED_RUNS } from '../../mock/runs';
+import type { Run, RunStep } from '../../types';
 import { SpecFlow } from './panels/SpecFlow';
 import { SpecCode } from './panels/SpecCode';
 import { SpecRuns } from './panels/SpecRuns';
@@ -32,6 +34,7 @@ export function WorkflowEditor(): JSX.Element {
   const { getById, save, update } = useWorkflows();
   const executions = useOptionalExecutions();
   const [tab, setTab] = React.useState<TabName>('Flow');
+  const [runs, setRuns] = React.useState<Run[]>(() => SEED_RUNS.filter((r) => r.workflowId === id));
 
   const workflow = id ? getById(id) : undefined;
 
@@ -43,10 +46,44 @@ export function WorkflowEditor(): JSX.Element {
     );
   }
 
-  const runs = SEED_RUNS.filter((run) => run.workflowId === workflow.id);
   const goToExecutions = () => {
     executions?.preload(workflow.name);
     navigate('/executions');
+  };
+
+  const runInline = (): void => {
+    setTab('Runs');
+
+    const runId = `run-inline-${Date.now()}`;
+    const newRun: Run = {
+      id: runId,
+      workflowId: workflow.id,
+      health: 'go',
+      steps: [],
+      durationMs: 0,
+      at: new Date().toISOString(),
+    };
+    const startedAt = Date.now();
+    setRuns((prev) => [newRun, ...prev]);
+
+    void runTask(workflow.name, (step: RunStep) => {
+      setRuns((prev) =>
+        prev.map((r) => (r.id === runId ? { ...r, steps: [...r.steps, step] } : r))
+      );
+    }).then((summary) => {
+      setRuns((prev) =>
+        prev.map((r) =>
+          r.id === runId
+            ? {
+                ...r,
+                health: 'go',
+                durationMs: Date.now() - startedAt,
+                steps: [...r.steps, { label: 'Summary', status: 'done', detail: summary }],
+              }
+            : r
+        )
+      );
+    });
   };
 
   return (
@@ -77,7 +114,7 @@ export function WorkflowEditor(): JSX.Element {
               <Button variant="secondary" size="md" onClick={goToExecutions}>
                 Run in Console
               </Button>
-              <Button variant="primary" size="md" onClick={goToExecutions}>
+              <Button variant="primary" size="md" onClick={runInline}>
                 Run
               </Button>
             </div>

@@ -25,6 +25,17 @@ export function RecordTab({ proxyDown = false }: RecordTabProps): JSX.Element {
     setStage('recording');
   }, [name]);
 
+  // If this tab unmounts (e.g. the user navigates away) while a recording is
+  // still in flight, its underlying interval would otherwise keep ticking
+  // forever — explicit Stop is the only other path that clears it. Stopping
+  // here is safe even when the recording was already stopped: stop() just
+  // clears an interval, which is idempotent.
+  React.useEffect(() => {
+    return () => {
+      handleRef.current?.stop();
+    };
+  }, []);
+
   const handleStop = React.useCallback(() => {
     setStage('building');
   }, []);
