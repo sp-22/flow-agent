@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { OnboardingProvider } from '../../store/onboarding.store';
 import { OnboardingWizard } from './OnboardingWizard';
 
-test('walks welcome → api key → proxy → record and gates on verify', async () => {
+test('walks welcome → adapter → gates on selecting and testing an adapter', async () => {
   const onDone = vi.fn();
   render(
     <OnboardingProvider>
@@ -13,11 +13,13 @@ test('walks welcome → api key → proxy → record and gates on verify', async
 
   await userEvent.click(screen.getByRole('button', { name: /Get started/i }));
 
-  // API key step: continue disabled until verify
+  // Adapter step: continue disabled until an adapter is selected and tested.
   const cont = screen.getByRole('button', { name: /Continue/i });
   expect(cont).toBeDisabled();
 
-  await userEvent.type(screen.getByPlaceholderText(/API key/i), 'sk-ant-xxx');
-  await userEvent.click(screen.getByRole('button', { name: /Verify/i }));
-  expect(await screen.findByText(/verified/i)).toBeInTheDocument();
+  // Detected adapters render as cards; pick Claude then test it.
+  await userEvent.click(await screen.findByTestId('adapter-card-claude'));
+  await userEvent.click(screen.getByRole('button', { name: /Test adapter/i }));
+  expect(await screen.findByText(/Adapter works/i)).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /Continue/i })).toBeEnabled();
 });

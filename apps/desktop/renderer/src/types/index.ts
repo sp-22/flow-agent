@@ -55,3 +55,43 @@ export interface Task {
   createdRelative: string;
   messages: ChatMessage[];
 }
+
+export type AdapterId = 'claude' | 'codex';
+
+export interface AdapterInfo {
+  id: AdapterId;
+  installed: boolean;
+  authenticated: boolean;
+  version: string | null;
+}
+
+export type AdapterEvent =
+  | { type: 'detect'; adapters: AdapterInfo[] }
+  | { type: 'status'; label: string }
+  | { type: 'step'; label: string; status: 'done' | 'active' | 'pending' }
+  | { type: 'output'; text: string }
+  | { type: 'result'; ok: boolean; summary: string }
+  | { type: 'error'; message: string; code: string };
+
+export interface AdapterActionResult {
+  ok: boolean;
+  summary?: string;
+  error?: string;
+}
+
+export interface AdapterBridge {
+  detect(): Promise<AdapterInfo[]>;
+  test(adapter: AdapterId): Promise<AdapterActionResult>;
+  run(
+    runId: string,
+    args: { adapter: AdapterId; prompt: string; cwd?: string },
+    onEvent: (event: AdapterEvent) => void
+  ): Promise<AdapterActionResult>;
+  cancel(runId: string): void;
+}
+
+declare global {
+  interface Window {
+    flowAgent?: { platform: string; adapter?: AdapterBridge };
+  }
+}

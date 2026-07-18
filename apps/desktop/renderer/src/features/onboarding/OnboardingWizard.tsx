@@ -2,21 +2,21 @@ import * as React from 'react';
 import { Button } from '../../components/Button';
 import { useOnboarding } from '../../store/onboarding.store';
 import { StepWelcome } from './steps/StepWelcome';
-import { StepApiKey } from './steps/StepApiKey';
+import { StepAdapter } from './steps/StepAdapter';
 import { StepProxyCert } from './steps/StepProxyCert';
 import { StepFirstRecord, type OnboardingExit } from './steps/StepFirstRecord';
 
-const STEP_LABELS = ['Welcome', 'API Key', 'Proxy', 'Record'] as const;
+const STEP_LABELS = ['Welcome', 'Adapter', 'Proxy', 'Record'] as const;
 
 export interface OnboardingWizardProps {
   onDone(dest: OnboardingExit): void;
 }
 
 export function OnboardingWizard({ onDone }: OnboardingWizardProps): JSX.Element {
-  const { apiKeyVerified, certTrusted } = useOnboarding();
+  const { adapterReady, certTrusted } = useOnboarding();
   const [step, setStep] = React.useState(0);
 
-  const gatePassed = step === 1 ? apiKeyVerified : step === 2 ? certTrusted : true;
+  const gatePassed = step === 1 ? adapterReady : step === 2 ? certTrusted : true;
 
   const goNext = React.useCallback(() => {
     setStep((s) => Math.min(s + 1, STEP_LABELS.length - 1));
@@ -53,7 +53,7 @@ export function OnboardingWizard({ onDone }: OnboardingWizardProps): JSX.Element
 
         <div className="flex-1">
           {step === 0 ? <StepWelcome onNext={goNext} /> : null}
-          {step === 1 ? <StepApiKey /> : null}
+          {step === 1 ? <StepAdapter /> : null}
           {step === 2 ? <StepProxyCert /> : null}
           {step === 3 ? <StepFirstRecord onDone={onDone} /> : null}
         </div>

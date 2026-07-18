@@ -1,14 +1,22 @@
 import * as React from 'react';
+import type { AdapterId, AdapterInfo } from '../types';
+import {
+  detectAdapters as detectAdaptersSvc,
+  testAdapter as testAdapterSvc,
+  setSelectedAdapter as persistSelectedAdapter,
+} from '../services/adapter.service';
 
 const STORAGE_KEY = 'workflowpilot:onboarding-complete';
-const VERIFY_DELAY_MS = 600;
 
 export interface OnboardingContextValue {
   complete: boolean;
-  apiKeyVerified: boolean;
-  certTrusted: boolean;
-  verifyApiKey(key: string): Promise<boolean>;
-  verifyCert(): Promise<boolean>;
+  detectedAdapters: AdapterInfo[];
+  selectedAdapter: AdapterId | null;
+  adapterTested: boolean;
+  adapterReady: boolean;
+  detectAdapters(): Promise<void>;
+  selectAdapter(id: AdapterId): void;
+  testAdapter(): Promise<boolean>;
   finish(): void;
 }
 
@@ -18,7 +26,6 @@ function readStoredComplete(): boolean {
   try {
     return window.localStorage.getItem(STORAGE_KEY) === 'true';
   } catch {
-    // localStorage unavailable (e.g. restrictive test/runtime environment) — degrade to false.
     return false;
   }
 }
@@ -33,35 +40,57 @@ function writeStoredComplete(): void {
 
 export function OnboardingProvider({ children }: { children: React.ReactNode }): JSX.Element {
   const [complete, setComplete] = React.useState<boolean>(() => readStoredComplete());
-  const [apiKeyVerified, setApiKeyVerified] = React.useState(false);
-  const [certTrusted, setCertTrusted] = React.useState(false);
+  const [detectedAdapters, setDetectedAdapters] = React.useState<AdapterInfo[]>([]);
+  const [selectedAdapter, setSelectedAdapter] = React.useState<AdapterId | null>(null);
+  const [adapterTested, setAdapterTested] = React.useState(false);
 
-  const verifyApiKey = React.useCallback((_key: string): Promise<boolean> => {
-    return new Promise<boolean>((resolve) => {
-      window.setTimeout(() => {
-        setApiKeyVerified(true);
-        resolve(true);
-      }, VERIFY_DELAY_MS);
+  const detectAdapters = React.useCallback(async (): Promise<void> => {
+    const infos = await detectAdaptersSvc();
+    setDetectedAdapters(infos);
+    setSelectedAdapter((current) => {
+      if (current) return current;
+      const preferred = infos.find((a) => a.installed && a.authenticated) ?? infos.find((a) => a.installed);
+      if (preferred) {
+        persistSelectedAdapter(preferred.id);
+        return preferred.id;
+      }
+      return null;
     });
   }, []);
 
-  const verifyCert = React.useCallback((): Promise<boolean> => {
-    return new Promise<boolean>((resolve) => {
-      window.setTimeout(() => {
-        setCertTrusted(true);
-        resolve(true);
-      }, VERIFY_DELAY_MS);
-    });
+  const selectAdapter = React.useCallback((id: AdapterId) => {
+    setSelectedAdapter(id);
+    setAdapterTested(false);
+    persistSelectedAdapter(id);
   }, []);
+
+  const testAdapter = React.useCallback(async (): Promise<boolean> => {
+    if (!selectedAdapter) return false;
+    const res = await testAdapterSvc(selectedAdapter);
+    setAdapterTested(res.ok);
+    return res.ok;
+  }, [selectedAdapter]);
 
   const finish = React.useCallback(() => {
     setComplete(true);
     writeStoredComplete();
   }, []);
 
+  const adapterReady = Boolean(selectedAdapter && adapterTested);
+
   const value = React.useMemo<OnboardingContextValue>(
-    () => ({ complete, apiKeyVerified, certTrusted, verifyApiKey, verifyCert, finish }),
-    [complete, apiKeyVerified, certTrusted, verifyApiKey, verifyCert, finish]
+    () => ({
+      complete,
+      detectedAdapters,
+      selectedAdapter,
+      adapterTested,
+      adapterReady,
+      detectAdapters,
+      selectAdapter,
+      testAdapter,
+      finish,
+    }),
+    [complete, detectedAdapters, selectedAdapter, adapterTested, adapterReady, detectAdapters, selectAdapter, testAdapter, finish]
   );
 
   return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;
