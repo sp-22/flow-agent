@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root,
+[data-theme='dark'] {
+  --bg-base: #09090b;
+  --bg-surface: #131316;
+  --bg-elevated: #1c1c21;
+
+  --border-wire: #27272e;
+  --border-hover: #33333d;
+
+  --text-muted: #5f5f70;
+  --text-body: #a1a1af;
+  --text-heading: #ececef;
+  --text-high: #ffffff;
+
+  --signal-bg: rgba(229, 83, 75, 0.08);
+  --go-bg: rgba(63, 185, 80, 0.08);
+  --hold-bg: rgba(210, 153, 34, 0.08);
+}
+
+[data-theme='light'] {
+  --bg-base: #f9f9fb;
+  --bg-surface: #f0f0f3;
+  --bg-elevated: #e4e4e9;
+
+  --border-wire: #d7d7df;
+  --border-hover: #bebec8;
+
+  --text-muted: #888896;
+  --text-body: #4b4b55;
+  --text-heading: #1d1d22;
+  --text-high: #09090b;
+
+  --signal-bg: rgba(229, 83, 75, 0.06);
+  --go-bg: rgba(63, 185, 80, 0.06);
+  --hold-bg: rgba(210, 153, 34, 0.06);
+}
+
+:root {
+  --signal: #e5534b;
+  --go: #3fb950;
+  --hold: #d29922;
+
+  --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', ui-monospace, monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-full: 9999px;
+
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --duration: 0.15s;
+}
+
