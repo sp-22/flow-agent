@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { CircleCheck, Circle } from 'lucide-react';
 import { Button } from '../../../components/Button';
 import { useOnboarding } from '../../../store/onboarding.store';
 
@@ -36,8 +37,13 @@ export function StepProxyCert(): JSX.Element {
         requests aren't blocked, then verify below.
       </p>
       <div className="flex items-center gap-2 text-sm">
-        <span className={certTrusted ? 'text-go' : 'text-muted'}>
-          {certTrusted ? '● Proxy trusted' : '○ Proxy not yet trusted'}
+        <span className={`flex items-center gap-1.5 ${certTrusted ? 'text-go' : 'text-muted'}`}>
+          {certTrusted ? (
+            <CircleCheck size={14} aria-hidden="true" />
+          ) : (
+            <Circle size={14} aria-hidden="true" />
+          )}
+          {certTrusted ? 'Proxy trusted' : 'Proxy not yet trusted'}
         </span>
       </div>
       <div className="flex items-center gap-2 rounded-md border border-wire bg-elevated px-3 py-2 font-mono text-xs text-body">

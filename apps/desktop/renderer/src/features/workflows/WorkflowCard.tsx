@@ -1,5 +1,7 @@
 import * as React from 'react';
+import { MoreHorizontal, Play } from 'lucide-react';
 import { Card } from '../../components/Card';
+import { WorkflowIcon } from '../../components/WorkflowIcon';
 import { ServiceTag } from '../../components/ServiceTag';
 import { Sparkline } from '../../components/Sparkline';
 import { StatusDot } from '../../components/StatusDot';
@@ -35,9 +37,9 @@ export function WorkflowCard({ workflow, onOpen, onRun }: WorkflowCardProps): JS
         type="button"
         aria-label="Workflow options"
         onClick={() => setMenuOpen((v) => !v)}
-        className="absolute right-3 top-3 rounded-md px-1.5 py-0.5 font-mono text-sm text-muted opacity-0 transition-opacity duration-150 ease-[var(--ease)] hover:text-heading group-hover:opacity-100"
+        className="absolute right-3 top-3 flex items-center rounded-md px-1.5 py-1 text-muted opacity-0 transition-opacity duration-150 ease-[var(--ease)] hover:text-heading group-hover:opacity-100"
       >
-        ⋯
+        <MoreHorizontal size={16} aria-hidden="true" />
       </button>
 
       {menuOpen && (
@@ -76,8 +78,8 @@ export function WorkflowCard({ workflow, onOpen, onRun }: WorkflowCardProps): JS
       )}
 
       <div className="flex items-start gap-2 pr-6">
-        <span className="text-lg leading-none" aria-hidden="true">
-          {workflow.icon}
+        <span className="flex items-center leading-none text-high" aria-hidden="true">
+          <WorkflowIcon name={workflow.icon} size={18} />
         </span>
         {renaming ? (
           <input
@@ -120,7 +122,8 @@ export function WorkflowCard({ workflow, onOpen, onRun }: WorkflowCardProps): JS
             View/Edit
           </Button>
           <Button variant="primary" size="sm" onClick={onRun}>
-            Run ▸
+            <Play size={13} aria-hidden="true" />
+            Run
           </Button>
         </div>
       </div>

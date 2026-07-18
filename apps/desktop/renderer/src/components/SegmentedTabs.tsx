@@ -19,7 +19,7 @@ export function SegmentedTabs(): JSX.Element {
   return (
     <div
       role="tablist"
-      className="inline-flex items-center gap-1 rounded-md border border-wire bg-base p-1"
+      className="inline-flex items-center gap-1"
     >
       {TABS.map((tab) => (
         <NavLink

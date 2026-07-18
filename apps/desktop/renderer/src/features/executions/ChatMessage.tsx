@@ -1,10 +1,6 @@
+import { User, Sparkles } from 'lucide-react';
 import type { ChatMessage as ChatMessageModel, RunStep } from '../../types';
-
-const GLYPH: Record<RunStep['status'], string> = {
-  done: '✓',
-  active: '▸',
-  pending: '○',
-};
+import { StepStatusIcon } from '../../components/StepStatusIcon';
 
 function progressLineColor(step: RunStep): string {
   const haystack = `${step.label} ${step.detail ?? ''}`;
@@ -22,9 +18,9 @@ export function ChatMessage(props: { message: ChatMessageModel }): JSX.Element {
     <div className="flex gap-3">
       <div
         aria-hidden="true"
-        className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-sm border border-wire bg-elevated text-sm text-body"
+        className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-sm border border-wire bg-elevated text-body"
       >
-        {isUser ? '🧑' : '✦'}
+        {isUser ? <User size={15} /> : <Sparkles size={15} />}
       </div>
       <div
         className={`max-w-[440px] rounded-md border border-wire px-4 py-3 text-sm leading-relaxed ${
@@ -36,9 +32,16 @@ export function ChatMessage(props: { message: ChatMessageModel }): JSX.Element {
         {message.progress && message.progress.length > 0 ? (
           <div className="mt-2 flex flex-col gap-0.5 font-mono text-xs leading-relaxed">
             {message.progress.map((step, i) => (
-              <div key={i} data-status={step.status} className={progressLineColor(step)}>
-                {GLYPH[step.status]} {step.label}
-                {step.detail ? ` — ${step.detail}` : ''}
+              <div
+                key={i}
+                data-status={step.status}
+                className={`flex items-center gap-1.5 ${progressLineColor(step)}`}
+              >
+                <StepStatusIcon status={step.status} size={12} className="shrink-0" />
+                <span>
+                  {step.label}
+                  {step.detail ? ` — ${step.detail}` : ''}
+                </span>
               </div>
             ))}
           </div>

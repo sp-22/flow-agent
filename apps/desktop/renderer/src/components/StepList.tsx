@@ -1,10 +1,5 @@
 import type { RunStep } from '../types';
-
-const GLYPH: Record<RunStep['status'], string> = {
-  done: '✓',
-  active: '▸',
-  pending: '○',
-};
+import { StepStatusIcon } from './StepStatusIcon';
 
 const COLOR: Record<RunStep['status'], string> = {
   done: 'text-go',
@@ -21,7 +16,9 @@ export function StepList(props: { steps: RunStep[] }): JSX.Element {
           data-status={step.status}
           className="flex items-center gap-2 font-mono text-sm"
         >
-          <span className={COLOR[step.status]}>{GLYPH[step.status]}</span>
+          <span className={`flex items-center ${COLOR[step.status]}`}>
+            <StepStatusIcon status={step.status} size={14} />
+          </span>
           <span>{step.label}</span>
           {step.detail ? <span className="text-muted">{step.detail}</span> : null}
         </li>

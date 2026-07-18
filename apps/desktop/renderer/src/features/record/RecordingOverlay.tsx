@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Play, Pause, Square } from 'lucide-react';
 import type { RecordingHandle } from '../../services/recording.service';
 import { RecordingDot } from '../../components/RecordingDot';
 import { Waveform } from '../../components/Waveform';
@@ -58,17 +59,18 @@ export function RecordingOverlay({ handle, onStop }: RecordingOverlayProps): JSX
             type="button"
             onClick={togglePause}
             aria-label={paused ? 'Resume' : 'Pause'}
-            className="text-sm text-body hover:text-heading"
+            className="flex items-center text-body hover:text-heading"
           >
-            {paused ? '▶' : '⏸'}
+            {paused ? <Play size={15} aria-hidden="true" /> : <Pause size={15} aria-hidden="true" />}
           </button>
           <button
             type="button"
             onClick={stop}
             aria-label="Stop"
-            className="text-sm text-body hover:text-heading"
+            className="flex items-center gap-1.5 text-sm text-body hover:text-heading"
           >
-            ■ Stop
+            <Square size={13} aria-hidden="true" />
+            Stop
           </button>
           <span className="font-mono text-sm tabular-nums text-heading">
             {formatTimer(seconds)}

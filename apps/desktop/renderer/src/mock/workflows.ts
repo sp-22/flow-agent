@@ -227,7 +227,7 @@ export const SEED_WORKFLOWS: Workflow[] = [
   {
     id: 'deploy-check',
     name: 'Deploy Check',
-    icon: '🚀',
+    icon: 'rocket',
     description: 'Checks the latest GitHub Actions run and cross-references Sentry on failure, alerting Slack.',
     services: ['GitHub', 'Sentry', 'Slack'],
     health: 'go',
@@ -242,7 +242,7 @@ export const SEED_WORKFLOWS: Workflow[] = [
   {
     id: 'onboard-client',
     name: 'Onboard Client',
-    icon: '📋',
+    icon: 'clipboard',
     description: 'Finds new client rows in Notion, spins up a welcome page, and emails the client via Gmail.',
     services: ['Notion', 'Gmail'],
     health: 'go',
@@ -257,7 +257,7 @@ export const SEED_WORKFLOWS: Workflow[] = [
   {
     id: 'price-monitor',
     name: 'Price Monitor',
-    icon: '💰',
+    icon: 'money',
     description: 'Scrapes a competitor product page and emails an alert whenever the price dips below threshold.',
     services: ['Web', 'Gmail'],
     health: 'signal',

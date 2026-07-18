@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Check } from 'lucide-react';
 import { subscribeMicLevel } from '../../services/recording.service';
 import { Button } from '../../components/Button';
 
@@ -59,7 +60,9 @@ export function RecordSetup({
             />
           </div>
           {micOk ? (
-            <span className="whitespace-nowrap text-xs text-go">✓ Sounds good</span>
+            <span className="flex items-center gap-1 whitespace-nowrap text-xs text-go">
+              <Check size={13} aria-hidden="true" /> Sounds good
+            </span>
           ) : (
             <span className="whitespace-nowrap text-xs text-muted">Listening…</span>
           )}

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { MoreHorizontal } from 'lucide-react';
 import { Button } from '../../components/Button';
 import { useExecutions } from '../../store/executions.store';
 
@@ -81,9 +82,9 @@ export function TaskSidebar(): JSX.Element {
                 type="button"
                 aria-label="Task options"
                 onClick={() => setMenuOpenId((v) => (v === task.id ? null : task.id))}
-                className="ml-1 rounded px-1 font-mono text-sm text-muted opacity-0 hover:text-heading group-hover:opacity-100"
+                className="ml-1 flex items-center rounded px-1 py-1 text-muted opacity-0 hover:text-heading group-hover:opacity-100"
               >
-                ⋯
+                <MoreHorizontal size={15} aria-hidden="true" />
               </button>
 
               {menuOpenId === task.id && (

@@ -35,7 +35,7 @@ export async function buildSkill(onStep: (step: RunStep) => void): Promise<Workf
     ...base,
     id: newDraftId(),
     name: 'New Automation',
-    icon: '✨',
+    icon: 'sparkles',
     description: 'A freshly generated automation, ready for review before it goes live.',
     health: 'signal',
     lastRunRelative: 'never run',

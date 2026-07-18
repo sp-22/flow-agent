@@ -9,7 +9,7 @@ export const SEED_TASKS: Task[] = [
       {
         id: 'task-1-msg-1',
         role: 'user',
-        text: '🚀 Deploy Check',
+        text: 'Deploy Check',
       },
       {
         id: 'task-1-msg-2',
@@ -73,7 +73,7 @@ export const SEED_TASKS: Task[] = [
       {
         id: 'task-3-msg-1',
         role: 'user',
-        text: '📋 Onboard Client',
+        text: 'Onboard Client',
       },
       {
         id: 'task-3-msg-2',

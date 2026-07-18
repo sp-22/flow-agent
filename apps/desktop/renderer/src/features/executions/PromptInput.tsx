@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useWorkflows } from '../../store/workflows.store';
 import { Button } from '../../components/Button';
+import { WorkflowIcon } from '../../components/WorkflowIcon';
 
 export interface PromptInputProps {
   value: string;
@@ -86,7 +87,7 @@ export function PromptInput({ value, onChange, onSubmit }: PromptInputProps): JS
               onClick={() => pickMention(w.name)}
               className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-body hover:bg-surface"
             >
-              <span aria-hidden="true">{w.icon}</span>
+              <WorkflowIcon name={w.icon} size={14} />
               <span>{w.name}</span>
             </button>
           ))}

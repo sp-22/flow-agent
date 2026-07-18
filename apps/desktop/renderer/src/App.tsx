@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { HashRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { ThemeProvider } from './store/theme.store';
 import { WorkflowsProvider } from './store/workflows.store';
 import { ExecutionsProvider } from './store/executions.store';
@@ -45,9 +45,9 @@ export default function App() {
     <div data-testid="app-root">
       <ThemeProvider>
         <OnboardingProvider>
-          <BrowserRouter>
+          <HashRouter>
             <Root />
-          </BrowserRouter>
+          </HashRouter>
         </OnboardingProvider>
       </ThemeProvider>
     </div>

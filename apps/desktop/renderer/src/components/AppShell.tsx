@@ -1,7 +1,9 @@
 import * as React from 'react';
+import { Sun, Moon } from 'lucide-react';
 import { SegmentedTabs } from './SegmentedTabs';
 import { StatusDot } from './StatusDot';
 import { useTheme } from '../store/theme.store';
+import logo from '../assets/logo.png';
 
 export interface AppShellProps {
   children: React.ReactNode;
@@ -19,9 +21,17 @@ export function AppShell({ children }: AppShellProps): JSX.Element {
         {/* macOS traffic-light inset spacer */}
         <div className="w-[70px] shrink-0" aria-hidden="true" />
 
-        <span className="font-display text-sm font-medium tracking-tight text-heading">
-          WorkflowPilot
-        </span>
+        <div className="flex items-center gap-2">
+          <img
+            src={logo}
+            alt="WorkflowPilot Logo"
+            className="h-[18px] w-[18px] shrink-0"
+            style={{ filter: 'var(--logo-filter)' }}
+          />
+          <span className="font-display text-sm font-medium tracking-tight text-heading">
+            WorkflowPilot
+          </span>
+        </div>
 
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
           <SegmentedTabs />
@@ -43,9 +53,13 @@ export function AppShell({ children }: AppShellProps): JSX.Element {
             type="button"
             onClick={toggle}
             aria-label="Toggle theme"
-            className="rounded-md border border-wire px-2 py-1 font-mono text-xs text-body transition-colors duration-150 ease-[var(--ease)] hover:border-wire-hover hover:text-heading"
+            className="rounded-md border border-wire p-1.5 text-body transition-colors duration-150 ease-[var(--ease)] hover:border-wire-hover hover:text-heading"
           >
-            {theme === 'dark' ? 'dark' : 'light'}
+            {theme === 'dark' ? (
+              <Sun size={16} aria-hidden="true" />
+            ) : (
+              <Moon size={16} aria-hidden="true" />
+            )}
           </button>
         </div>
       </header>

@@ -1,5 +1,7 @@
 export type Health = 'go' | 'hold' | 'signal';
 
+export type WorkflowIconName = 'rocket' | 'clipboard' | 'money' | 'sparkles';
+
 export type ServiceName =
   | 'GitHub'
   | 'Sentry'
@@ -27,7 +29,7 @@ export interface Run {
 export interface Workflow {
   id: string;
   name: string;
-  icon: string;
+  icon: WorkflowIconName;
   description: string;
   services: ServiceName[];
   health: Health;
