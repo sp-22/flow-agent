@@ -1,6 +1,7 @@
 import { app, BrowserWindow, nativeImage } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { registerAdapterManager } from './adapter-manager';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function createWindow() {
@@ -15,6 +16,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  registerAdapterManager();
   if (process.platform === 'darwin') {
     const iconPath = path.join(__dirname, '../../public/logo.png');
     app.dock.setIcon(nativeImage.createFromPath(iconPath));

@@ -1,0 +1,155 @@
+import { ipcMain, type WebContents } from 'electron';
+import { spawn, type ChildProcess } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { parseAdapterLine, type AdapterEvent, type AdapterInfo } from './adapter-protocol';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+function runtimeDir(): string {
+  if (process.env.FLOW_RUNTIME_DIR) return process.env.FLOW_RUNTIME_DIR;
+  // dist-electron/main -> repo root -> services/flow-runtime
+  return path.resolve(__dirname, '../../../../services/flow-runtime');
+}
+
+function resolvePython(): string {
+  if (process.env.FLOW_RUNTIME_PYTHON) return process.env.FLOW_RUNTIME_PYTHON;
+  const venv = path.join(runtimeDir(), '.venv', 'bin', 'python');
+  if (fs.existsSync(venv)) return venv;
+  return 'python3';
+}
+
+function spawnRuntime(args: string[]): ChildProcess {
+  const dir = runtimeDir();
+  return spawn(resolvePython(), ['-m', 'flow_runtime', ...args], {
+    cwd: dir,
+    env: { ...process.env, PYTHONPATH: path.join(dir, 'src') },
+  });
+}
+
+function collect(args: string[], stdin?: string): Promise<{ events: AdapterEvent[]; code: number; stderr: string }> {
+  return new Promise((resolve) => {
+    let child: ChildProcess;
+    try {
+      child = spawnRuntime(args);
+    } catch (err) {
+      resolve({
+        events: [{ type: 'error', message: String(err), code: 'SPAWN_FAILED' }],
+        code: 1,
+        stderr: '',
+      });
+      return;
+    }
+    const events: AdapterEvent[] = [];
+    let buffer = '';
+    let stderr = '';
+    child.stdout?.on('data', (chunk: Buffer) => {
+      buffer += chunk.toString();
+      let idx: number;
+      while ((idx = buffer.indexOf('\n')) >= 0) {
+        const line = buffer.slice(0, idx);
+        buffer = buffer.slice(idx + 1);
+        const ev = parseAdapterLine(line);
+        if (ev) events.push(ev);
+      }
+    });
+    child.stderr?.on('data', (c: Buffer) => (stderr += c.toString()));
+    child.on('error', (err) => {
+      events.push({ type: 'error', message: String(err), code: 'SPAWN_FAILED' });
+    });
+    child.on('close', (code) => {
+      const tail = parseAdapterLine(buffer);
+      if (tail) events.push(tail);
+      resolve({ events, code: code ?? 0, stderr });
+    });
+  });
+}
+
+const runs = new Map<string, ChildProcess>();
+
+function startRun(
+  sender: WebContents,
+  runId: string,
+  adapter: string,
+  prompt: string,
+  cwd?: string
+): void {
+  const args = ['run', '--adapter', adapter];
+  if (cwd) args.push('--cwd', cwd);
+  let child: ChildProcess;
+  try {
+    child = spawnRuntime(args);
+  } catch (err) {
+    sender.send('adapter:run:event', {
+      runId,
+      event: { type: 'error', message: String(err), code: 'SPAWN_FAILED' },
+    });
+    return;
+  }
+  runs.set(runId, child);
+  child.stdin?.write(prompt);
+  child.stdin?.end();
+
+  let buffer = '';
+  let stderr = '';
+  let terminated = false;
+  const send = (event: AdapterEvent) => {
+    if (event.type === 'result' || event.type === 'error') terminated = true;
+    if (!sender.isDestroyed()) sender.send('adapter:run:event', { runId, event });
+  };
+
+  child.stdout?.on('data', (chunk: Buffer) => {
+    buffer += chunk.toString();
+    let idx: number;
+    while ((idx = buffer.indexOf('\n')) >= 0) {
+      const line = buffer.slice(0, idx);
+      buffer = buffer.slice(idx + 1);
+      const ev = parseAdapterLine(line);
+      if (ev) send(ev);
+    }
+  });
+  child.stderr?.on('data', (c: Buffer) => (stderr += c.toString()));
+  child.on('error', (err) => send({ type: 'error', message: String(err), code: 'SPAWN_FAILED' }));
+  child.on('close', (code) => {
+    const tail = parseAdapterLine(buffer);
+    if (tail) send(tail);
+    runs.delete(runId);
+    if (!terminated) {
+      if (code === 0) send({ type: 'result', ok: true, summary: 'Completed' });
+      else send({ type: 'error', message: stderr.trim() || `exited with code ${code}`, code: 'RUNTIME_ERROR' });
+    }
+  });
+}
+
+export function registerAdapterManager(): void {
+  ipcMain.handle('adapter:detect', async (): Promise<AdapterInfo[]> => {
+    const { events } = await collect(['detect']);
+    const detect = events.find((e) => e.type === 'detect');
+    return detect && detect.type === 'detect' ? detect.adapters : [];
+  });
+
+  ipcMain.handle('adapter:test', async (_e, { adapter }: { adapter: string }) => {
+    const { events } = await collect(['test', '--adapter', adapter]);
+    const result = events.find((e) => e.type === 'result');
+    if (result && result.type === 'result' && result.ok) return { ok: true, summary: result.summary };
+    const error = events.find((e) => e.type === 'error');
+    return { ok: false, error: error && error.type === 'error' ? error.message : 'Adapter test failed' };
+  });
+
+  ipcMain.handle(
+    'adapter:run:start',
+    async (e, { runId, adapter, prompt, cwd }: { runId: string; adapter: string; prompt: string; cwd?: string }) => {
+      startRun(e.sender, runId, adapter, prompt, cwd);
+      return { started: true };
+    }
+  );
+
+  ipcMain.on('adapter:run:cancel', (_e, { runId }: { runId: string }) => {
+    const child = runs.get(runId);
+    if (child) {
+      child.kill('SIGTERM');
+      runs.delete(runId);
+    }
+  });
+}
