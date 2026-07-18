@@ -7,6 +7,11 @@ import { parseAdapterLine, type AdapterEvent, type AdapterInfo } from './adapter
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+function log(...parts: unknown[]): void {
+  // eslint-disable-next-line no-console
+  console.log('[flow-runtime]', ...parts);
+}
+
 function runtimeDir(): string {
   if (process.env.FLOW_RUNTIME_DIR) return process.env.FLOW_RUNTIME_DIR;
   // dist-electron/main -> repo root -> services/flow-runtime
@@ -45,7 +50,9 @@ function augmentedPath(): string {
 
 function spawnRuntime(args: string[]): ChildProcess {
   const dir = runtimeDir();
-  return spawn(resolvePython(), ['-m', 'flow_runtime', ...args], {
+  const python = resolvePython();
+  log('spawn:', python, '-m flow_runtime', args.join(' '), '(cwd:', dir + ')');
+  return spawn(python, ['-m', 'flow_runtime', ...args], {
     cwd: dir,
     env: { ...process.env, PATH: augmentedPath(), PYTHONPATH: path.join(dir, 'src') },
   });
@@ -84,6 +91,8 @@ function collect(args: string[], stdin?: string): Promise<{ events: AdapterEvent
     child.on('close', (code) => {
       const tail = parseAdapterLine(buffer);
       if (tail) events.push(tail);
+      log('exit', code, '·', args.join(' '), '·', events.length, 'events');
+      if (stderr.trim()) log('stderr:', stderr.trim());
       resolve({ events, code: code ?? 0, stderr });
     });
   });
@@ -111,6 +120,7 @@ function startRun(
     return;
   }
   runs.set(runId, child);
+  log('run start:', adapter, '· runId', runId, '· prompt:', JSON.stringify(prompt.slice(0, 80)));
   child.stdin?.write(prompt);
   child.stdin?.end();
 
@@ -118,6 +128,7 @@ function startRun(
   let stderr = '';
   let terminated = false;
   const send = (event: AdapterEvent) => {
+    log('run event:', event.type, '·', 'label' in event ? event.label : 'text' in event ? JSON.stringify(String(event.text).slice(0, 80)) : '');
     if (event.type === 'result' || event.type === 'error') terminated = true;
     if (!sender.isDestroyed()) sender.send('adapter:run:event', { runId, event });
   };
@@ -138,6 +149,7 @@ function startRun(
     const tail = parseAdapterLine(buffer);
     if (tail) send(tail);
     runs.delete(runId);
+    log('run exit', code, '· runId', runId);
     if (!terminated) {
       if (code === 0) send({ type: 'result', ok: true, summary: 'Completed' });
       else send({ type: 'error', message: stderr.trim() || `exited with code ${code}`, code: 'RUNTIME_ERROR' });
@@ -147,17 +159,26 @@ function startRun(
 
 export function registerAdapterManager(): void {
   ipcMain.handle('adapter:detect', async (): Promise<AdapterInfo[]> => {
+    log('detect requested');
     const { events } = await collect(['detect']);
     const detect = events.find((e) => e.type === 'detect');
-    return detect && detect.type === 'detect' ? detect.adapters : [];
+    const adapters = detect && detect.type === 'detect' ? detect.adapters : [];
+    log('detect result:', JSON.stringify(adapters));
+    return adapters;
   });
 
   ipcMain.handle('adapter:test', async (_e, { adapter }: { adapter: string }) => {
+    log('test requested:', adapter);
     const { events } = await collect(['test', '--adapter', adapter]);
     const result = events.find((e) => e.type === 'result');
-    if (result && result.type === 'result' && result.ok) return { ok: true, summary: result.summary };
+    if (result && result.type === 'result' && result.ok) {
+      log('test OK:', adapter, '·', result.summary);
+      return { ok: true, summary: result.summary };
+    }
     const error = events.find((e) => e.type === 'error');
-    return { ok: false, error: error && error.type === 'error' ? error.message : 'Adapter test failed' };
+    const message = error && error.type === 'error' ? error.message : 'Adapter test failed';
+    log('test FAIL:', adapter, '·', message);
+    return { ok: false, error: message };
   });
 
   ipcMain.handle(
