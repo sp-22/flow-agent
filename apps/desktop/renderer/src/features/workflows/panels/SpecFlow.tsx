@@ -1,10 +1,23 @@
-import { Mermaid } from '../../../components/Mermaid';
+import type { FlowGraph } from '../../../types';
+import { FlowCanvas } from '../flow/FlowCanvas';
 
-export function SpecFlow(props: { chart: string; summary?: string }): JSX.Element {
+export interface SpecFlowProps {
+  graph: FlowGraph;
+  summary?: string;
+  selectedNodeId: string | null;
+  onSelect(id: string | null): void;
+}
+
+export function SpecFlow({
+  graph,
+  summary,
+  selectedNodeId,
+  onSelect,
+}: SpecFlowProps): JSX.Element {
   return (
     <div className="flex flex-col gap-3">
-      {props.summary ? <p className="text-sm text-body">{props.summary}</p> : null}
-      <Mermaid chart={props.chart} />
+      {summary ? <p className="text-sm text-body">{summary}</p> : null}
+      <FlowCanvas graph={graph} selectedNodeId={selectedNodeId} onSelect={onSelect} />
     </div>
   );
 }
