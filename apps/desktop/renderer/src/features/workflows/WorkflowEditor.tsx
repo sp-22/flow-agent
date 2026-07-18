@@ -5,6 +5,7 @@ import { Badge } from '../../components/Badge';
 import { useWorkflows } from '../../store/workflows.store';
 import { useExecutions, type ExecutionsContextValue } from '../../store/executions.store';
 import { runTask } from '../../services/execution.service';
+import { getSelectedAdapter } from '../../services/adapter.service';
 import { SEED_RUNS } from '../../mock/runs';
 import type { Run, RunStep } from '../../types';
 import { SpecFlow } from './panels/SpecFlow';
@@ -66,11 +67,11 @@ export function WorkflowEditor(): JSX.Element {
     const startedAt = Date.now();
     setRuns((prev) => [newRun, ...prev]);
 
-    void runTask(workflow.name, (step: RunStep) => {
+    void runTask(workflow.name, getSelectedAdapter(), (step: RunStep) => {
       setRuns((prev) =>
         prev.map((r) => (r.id === runId ? { ...r, steps: [...r.steps, step] } : r))
       );
-    }).then((summary) => {
+    }, runId).then((summary) => {
       setRuns((prev) =>
         prev.map((r) =>
           r.id === runId
@@ -79,6 +80,20 @@ export function WorkflowEditor(): JSX.Element {
                 health: 'go',
                 durationMs: Date.now() - startedAt,
                 steps: [...r.steps, { label: 'Summary', status: 'done', detail: summary }],
+              }
+            : r
+        )
+      );
+    }).catch((err: unknown) => {
+      const message = err instanceof Error ? err.message : 'Adapter run failed';
+      setRuns((prev) =>
+        prev.map((r) =>
+          r.id === runId
+            ? {
+                ...r,
+                health: 'signal',
+                durationMs: Date.now() - startedAt,
+                steps: [...r.steps, { label: 'Failed', status: 'done', detail: message }],
               }
             : r
         )

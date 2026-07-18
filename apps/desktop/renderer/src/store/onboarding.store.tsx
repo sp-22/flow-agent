@@ -7,6 +7,7 @@ import {
 } from '../services/adapter.service';
 
 const STORAGE_KEY = 'workflowpilot:onboarding-complete';
+const VERIFY_DELAY_MS = 600;
 
 export interface OnboardingContextValue {
   complete: boolean;
@@ -14,9 +15,11 @@ export interface OnboardingContextValue {
   selectedAdapter: AdapterId | null;
   adapterTested: boolean;
   adapterReady: boolean;
+  certTrusted: boolean;
   detectAdapters(): Promise<void>;
   selectAdapter(id: AdapterId): void;
   testAdapter(): Promise<boolean>;
+  verifyCert(): Promise<boolean>;
   finish(): void;
 }
 
@@ -43,6 +46,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }):
   const [detectedAdapters, setDetectedAdapters] = React.useState<AdapterInfo[]>([]);
   const [selectedAdapter, setSelectedAdapter] = React.useState<AdapterId | null>(null);
   const [adapterTested, setAdapterTested] = React.useState(false);
+  const [certTrusted, setCertTrusted] = React.useState(false);
 
   const detectAdapters = React.useCallback(async (): Promise<void> => {
     const infos = await detectAdaptersSvc();
@@ -71,6 +75,15 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }):
     return res.ok;
   }, [selectedAdapter]);
 
+  const verifyCert = React.useCallback((): Promise<boolean> => {
+    return new Promise<boolean>((resolve) => {
+      window.setTimeout(() => {
+        setCertTrusted(true);
+        resolve(true);
+      }, VERIFY_DELAY_MS);
+    });
+  }, []);
+
   const finish = React.useCallback(() => {
     setComplete(true);
     writeStoredComplete();
@@ -85,12 +98,14 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }):
       selectedAdapter,
       adapterTested,
       adapterReady,
+      certTrusted,
       detectAdapters,
       selectAdapter,
       testAdapter,
+      verifyCert,
       finish,
     }),
-    [complete, detectedAdapters, selectedAdapter, adapterTested, adapterReady, detectAdapters, selectAdapter, testAdapter, finish]
+    [complete, detectedAdapters, selectedAdapter, adapterTested, adapterReady, certTrusted, detectAdapters, selectAdapter, testAdapter, verifyCert, finish]
   );
 
   return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;
