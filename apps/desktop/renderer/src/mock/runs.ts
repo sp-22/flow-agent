@@ -81,7 +81,7 @@ export const SEED_RUNS: Run[] = [
     health: 'signal',
     steps: [
       { label: 'Fetch Product Page (Web)', status: 'done' },
-      { label: 'Parse Current Price', status: 'active', detail: 'no price match found — page structure changed' },
+      { label: 'Parse Current Price', status: 'done', detail: 'no price match found — page structure changed' },
     ],
     durationMs: 780,
     at: '2026-07-18T09:05:00.000Z',
@@ -92,7 +92,7 @@ export const SEED_RUNS: Run[] = [
     health: 'signal',
     steps: [
       { label: 'Fetch Product Page (Web)', status: 'done' },
-      { label: 'Parse Current Price', status: 'active', detail: 'no price match found — page structure changed' },
+      { label: 'Parse Current Price', status: 'done', detail: 'no price match found — page structure changed' },
     ],
     durationMs: 810,
     at: '2026-07-18T03:05:00.000Z',
