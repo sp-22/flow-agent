@@ -4,12 +4,15 @@ import {
   ChevronRight,
   LayoutGrid,
   Mic,
+  Moon,
   MoreHorizontal,
   PanelLeftClose,
   SquarePen,
   Star,
+  Sun,
 } from 'lucide-react';
 import { useExecutions } from '../store/executions.store';
+import { useTheme } from '../store/theme.store';
 import type { Task } from '../types';
 import logo from '../assets/logo.png';
 
@@ -32,6 +35,7 @@ interface TaskRowState {
 
 export function GlobalSidebar({ collapsed, onToggleCollapsed }: GlobalSidebarProps): JSX.Element {
   const { recentTasks, pinnedTasks, activeId, newTask, openTask, togglePin } = useExecutions();
+  const { theme, toggle: toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   // Rename/delete are UI affordances only — the store does not expose mutators
@@ -207,6 +211,19 @@ export function GlobalSidebar({ collapsed, onToggleCollapsed }: GlobalSidebarPro
               className="ml-auto flex items-center gap-0.5"
               style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
             >
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label="Toggle theme"
+                title="Toggle theme"
+                className="flex items-center rounded-md p-1 text-muted transition-colors hover:bg-elevated hover:text-heading motion-reduce:transition-none"
+              >
+                {theme === 'dark' ? (
+                  <Sun size={16} aria-hidden="true" />
+                ) : (
+                  <Moon size={16} aria-hidden="true" />
+                )}
+              </button>
               <button
                 type="button"
                 onClick={onToggleCollapsed}
