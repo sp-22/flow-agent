@@ -35,6 +35,8 @@ export function WorkflowEditor(): JSX.Element {
   const executions = useOptionalExecutions();
   const [tab, setTab] = React.useState<TabName>('Flow');
   const [runs, setRuns] = React.useState<Run[]>(() => SEED_RUNS.filter((r) => r.workflowId === id));
+  const [refactorOpen, setRefactorOpen] = React.useState(false);
+  const [selectedNodeId, setSelectedNodeId] = React.useState<string | null>(null);
 
   const workflow = id ? getById(id) : undefined;
 
@@ -45,6 +47,25 @@ export function WorkflowEditor(): JSX.Element {
       </div>
     );
   }
+
+  const selectedStepTitle =
+    selectedNodeId == null
+      ? null
+      : workflow.flow.nodes.find((n) => n.id === selectedNodeId)?.title ?? null;
+
+  const handleSelectNode = (nodeId: string | null) => {
+    setSelectedNodeId(nodeId);
+    if (nodeId != null) setRefactorOpen(true);
+  };
+
+  const deploySuggestions =
+    workflow.id === 'deploy-check'
+      ? [
+          'Also page on-call when a deploy fails',
+          'Retry the Sentry query if it times out',
+          'Only alert when there are 5+ new errors',
+        ]
+      : undefined;
 
   const goToExecutions = () => {
     executions?.preload(workflow.name);
@@ -94,9 +115,14 @@ export function WorkflowEditor(): JSX.Element {
             <h1 className="font-display text-lg font-medium text-heading">
               {"Your workflow is ready — here's what I built"}
             </h1>
-            <Button variant="primary" size="md" onClick={() => save(workflow.id)}>
-              Save
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" size="md" onClick={() => setRefactorOpen((v) => !v)}>
+                + Refactor
+              </Button>
+              <Button variant="primary" size="md" onClick={() => save(workflow.id)}>
+                Save
+              </Button>
+            </div>
           </>
         ) : (
           <>
@@ -111,6 +137,9 @@ export function WorkflowEditor(): JSX.Element {
               </Badge>
             </div>
             <div className="flex items-center gap-2">
+              <Button variant="secondary" size="md" onClick={() => setRefactorOpen((v) => !v)}>
+                + Refactor
+              </Button>
               <Button variant="secondary" size="md" onClick={goToExecutions}>
                 Run in Console
               </Button>
@@ -144,7 +173,14 @@ export function WorkflowEditor(): JSX.Element {
             ))}
           </div>
           <div className="flex-1 overflow-y-auto p-4">
-            {tab === 'Flow' ? <SpecFlow chart={workflow.mermaid} summary={workflow.summary} /> : null}
+            {tab === 'Flow' ? (
+              <SpecFlow
+                graph={workflow.flow}
+                summary={workflow.summary}
+                selectedNodeId={selectedNodeId}
+                onSelect={handleSelectNode}
+              />
+            ) : null}
             {tab === 'Code' ? (
               <SpecCode skillPy={workflow.skillPy} manifestYaml={workflow.manifestYaml} />
             ) : null}
@@ -152,13 +188,19 @@ export function WorkflowEditor(): JSX.Element {
           </div>
         </div>
 
-        <div className="w-[360px] shrink-0">
-          <RefactorChat
-            onApply={(patch) =>
-              update(workflow.id, { skillPy: patch.newSkillPy, mermaid: patch.newMermaid })
-            }
-          />
-        </div>
+        {refactorOpen ? (
+          <div className="w-[360px] shrink-0 border-l border-wire">
+            <RefactorChat
+              onApply={(patch) =>
+                update(workflow.id, { skillPy: patch.newSkillPy, mermaid: patch.newMermaid })
+              }
+              selectedStepTitle={selectedStepTitle}
+              onClearStep={() => setSelectedNodeId(null)}
+              onClose={() => setRefactorOpen(false)}
+              suggestions={deploySuggestions}
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   );
