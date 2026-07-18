@@ -3,10 +3,11 @@ import { AlertCircle, CircleCheck, Circle } from 'lucide-react';
 import { Button } from '../../../components/Button';
 import { useOnboarding } from '../../../store/onboarding.store';
 import type { AdapterId } from '../../../types';
+import { AdapterLogo } from './AdapterLogo';
 
-const ADAPTERS: Array<{ id: AdapterId; name: string; hint: string }> = [
-  { id: 'claude', name: 'Claude Code', hint: 'Runs `claude` — sign in with `claude login`.' },
-  { id: 'codex', name: 'Codex', hint: 'Runs `codex` — sign in with `codex login`.' },
+const ADAPTERS: Array<{ id: AdapterId; name: string; provider: string; command: string }> = [
+  { id: 'claude', name: 'Claude Code', provider: 'Anthropic', command: 'claude' },
+  { id: 'codex', name: 'Codex', provider: 'OpenAI', command: 'codex' },
 ];
 
 interface AdapterError {
@@ -112,8 +113,8 @@ export function StepAdapter(): JSX.Element {
         confirm it works.
       </p>
 
-      <div className="flex flex-col gap-2">
-        {ADAPTERS.map(({ id, name, hint }) => {
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {ADAPTERS.map(({ id, name, provider, command }) => {
           const selected = selectedAdapter === id;
           const status = statusFor(id);
           return (
@@ -122,20 +123,39 @@ export function StepAdapter(): JSX.Element {
               type="button"
               data-testid={`adapter-card-${id}`}
               aria-pressed={selected}
+              aria-label={`Select ${name} adapter`}
               onClick={() => handleSelect(id)}
               className={
-                'flex items-center justify-between rounded-md border px-3 py-2.5 text-left transition-colors ' +
-                (selected ? 'border-wire-hover bg-elevated' : 'border-wire bg-surface hover:border-wire-hover')
+                'relative flex min-h-40 flex-col items-center rounded-lg border px-4 py-5 text-center ' +
+                'transition-colors duration-150 ease-[var(--ease)] ' +
+                'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-wire-hover ' +
+                (selected
+                  ? 'border-wire-hover bg-elevated text-heading'
+                  : 'border-wire bg-surface text-body hover:border-wire-hover hover:bg-elevated')
               }
             >
-              <span className="flex flex-col gap-0.5">
-                <span className="flex items-center gap-2 text-sm text-heading">
-                  {selected ? <CircleCheck size={14} aria-hidden="true" /> : <Circle size={14} aria-hidden="true" />}
-                  {name}
-                </span>
-                <span className="font-mono text-xs text-muted">{hint}</span>
+              <span className="absolute right-3 top-3 text-muted">
+                {selected ? (
+                  <CircleCheck size={16} className="text-heading" aria-hidden="true" />
+                ) : (
+                  <Circle size={16} aria-hidden="true" />
+                )}
               </span>
-              <span className={`text-xs ${status.tone}`}>{status.label}</span>
+
+              <span
+                className={
+                  'mb-3 grid h-12 w-12 place-items-center rounded-md border transition-colors ' +
+                  (selected ? 'border-wire-hover bg-surface text-heading' : 'border-wire bg-elevated text-body')
+                }
+              >
+                <AdapterLogo adapter={id} className="h-7 w-7" />
+              </span>
+
+              <span className="text-sm font-medium text-heading">{name}</span>
+              <span className="mt-1 font-mono text-[10px] text-muted">
+                {provider} · {command}
+              </span>
+              <span className={`mt-auto pt-3 text-xs ${status.tone}`}>{status.label}</span>
             </button>
           );
         })}

@@ -1,4 +1,14 @@
+import { render, screen } from '@testing-library/react';
+import { AdapterLogo } from './AdapterLogo';
 import { formatAdapterError } from './StepAdapter';
+
+test('renders accessible monochrome marks for both adapters', () => {
+  const { rerender } = render(<AdapterLogo adapter="claude" />);
+  expect(screen.getByRole('img', { name: 'Claude Code logo' })).toHaveAttribute('fill', 'currentColor');
+
+  rerender(<AdapterLogo adapter="codex" />);
+  expect(screen.getByRole('img', { name: 'Codex logo' })).toHaveAttribute('fill', 'currentColor');
+});
 
 test('turns a missing Codex executable stack trace into actionable copy', () => {
   const error = formatAdapterError(
