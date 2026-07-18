@@ -35,11 +35,21 @@ export function Mermaid(props: { chart: string }): JSX.Element {
     ensureInitialized();
     let cancelled = false;
 
-    mermaid.render(idRef.current, props.chart).then(({ svg }) => {
-      if (!cancelled && ref.current) {
-        ref.current.innerHTML = svg;
-      }
-    });
+    mermaid
+      .render(idRef.current, props.chart)
+      .then(({ svg }) => {
+        if (!cancelled && ref.current) {
+          ref.current.innerHTML = svg;
+        }
+      })
+      .catch(() => {
+        // Rendering can fail on a malformed chart or in a headless/jsdom
+        // environment lacking SVG measurement (getBBox). Degrade gracefully
+        // rather than throwing an unhandled rejection.
+        if (!cancelled && ref.current) {
+          ref.current.textContent = 'Unable to render diagram.';
+        }
+      });
 
     return () => {
       cancelled = true;

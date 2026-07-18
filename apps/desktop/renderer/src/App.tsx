@@ -1,10 +1,13 @@
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { ThemeProvider } from './store/theme.store';
 import { WorkflowsProvider } from './store/workflows.store';
+import { ExecutionsProvider } from './store/executions.store';
 import { OnboardingProvider, useOnboarding } from './store/onboarding.store';
 import { OnboardingWizard } from './features/onboarding/OnboardingWizard';
 import { AppShell } from './components/AppShell';
 import { WorkflowsTab } from './features/workflows/WorkflowsTab';
+import { RecordTab } from './features/record/RecordTab';
+import { ExecutionsTab } from './features/executions/ExecutionsTab';
 
 function Root(): JSX.Element {
   const { complete, finish } = useOnboarding();
@@ -23,15 +26,16 @@ function Root(): JSX.Element {
 
   return (
     <WorkflowsProvider>
-      <AppShell>
-        <Routes>
-          <Route path="/" element={<Navigate to="/workflows" replace />} />
-          <Route path="/record" element={<div>Record</div>} />
-          <Route path="/workflows" element={<WorkflowsTab />} />
-          <Route path="/workflows/:id" element={<div>Workflow Detail</div>} />
-          <Route path="/executions" element={<div>Executions</div>} />
-        </Routes>
-      </AppShell>
+      <ExecutionsProvider>
+        <AppShell>
+          <Routes>
+            <Route path="/" element={<Navigate to="/workflows" replace />} />
+            <Route path="/record" element={<RecordTab />} />
+            <Route path="/workflows/*" element={<WorkflowsTab />} />
+            <Route path="/executions" element={<ExecutionsTab />} />
+          </Routes>
+        </AppShell>
+      </ExecutionsProvider>
     </WorkflowsProvider>
   );
 }
