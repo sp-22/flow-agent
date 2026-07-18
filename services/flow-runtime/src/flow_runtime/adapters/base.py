@@ -82,21 +82,28 @@ class Adapter:
             yield {"type": "error", "message": str(exc), "code": "SPAWN_FAILED"}
             return
 
-        last = ""
+        recent: list[str] = []
         assert proc.stdout is not None
         for line in proc.stdout:
             text = line.rstrip("\n")
             if text.strip():
-                last = text.strip()
+                recent.append(text.strip())
+                del recent[:-8]  # keep only the last 8 non-empty lines
                 yield {"type": "output", "text": text}
         code = proc.wait()
         if code == 0:
-            yield {"type": "result", "ok": True, "summary": last or "Completed"}
+            yield {"type": "result", "ok": True, "summary": (recent[-1] if recent else "Completed")}
         else:
             err = (proc.stderr.read() if proc.stderr else "").strip()
+            # claude/codex print failure reasons to stdout, not stderr — fall back
+            # to the captured output so the error carries the actual reason.
+            detail = err or " · ".join(recent)
+            message = f"{self.binary} exited with code {code}"
+            if detail:
+                message = f"{message}: {detail}"
             yield {
                 "type": "error",
-                "message": err or f"{self.binary} exited with code {code}",
+                "message": message,
                 "code": "RUNTIME_ERROR",
             }
 
