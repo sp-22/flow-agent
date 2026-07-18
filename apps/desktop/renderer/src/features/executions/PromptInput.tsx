@@ -94,7 +94,7 @@ export function PromptInput({ value, onChange, onSubmit }: PromptInputProps): JS
         </div>
       )}
 
-      <div className="flex items-center gap-2 rounded-lg border border-wire bg-surface px-3 py-2 focus-within:border-wire-hover">
+      <div className="flex items-center gap-2 rounded-xl border border-wire bg-surface px-4 py-3 focus-within:border-wire-hover">
         <input
           ref={inputRef}
           type="text"
@@ -103,7 +103,7 @@ export function PromptInput({ value, onChange, onSubmit }: PromptInputProps): JS
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder="Type a task, or / to mention a workflow…"
-          className="h-8 flex-1 bg-transparent text-sm text-body outline-none placeholder:text-muted"
+          className="h-11 flex-1 bg-transparent text-base text-body outline-none placeholder:text-muted"
         />
         <Button variant="primary" size="sm" onClick={onSubmit}>
           Send

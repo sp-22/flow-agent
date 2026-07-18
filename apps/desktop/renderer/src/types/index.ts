@@ -69,6 +69,7 @@ export interface Workflow {
   flow: FlowGraph;
   summary: string;
   draft: boolean;
+  steps: string[];
 }
 
 export interface ChatMessage {
@@ -76,6 +77,8 @@ export interface ChatMessage {
   role: 'user' | 'agent';
   text: string;
   progress?: RunStep[];
+  /** True while the agent is actively running/streaming this turn. */
+  pending?: boolean;
 }
 
 export interface Task {
@@ -83,6 +86,8 @@ export interface Task {
   title: string;
   createdRelative: string;
   messages: ChatMessage[];
+  workflowId?: string;
+  pinned?: boolean;
 }
 
 export type AdapterId = 'claude' | 'codex';
