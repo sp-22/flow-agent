@@ -29,7 +29,7 @@ function Root(): JSX.Element {
       <ExecutionsProvider>
         <AppShell>
           <Routes>
-            <Route path="/" element={<Navigate to="/workflows" replace />} />
+            <Route path="/" element={<Navigate to="/executions" replace />} />
             <Route path="/record" element={<RecordTab />} />
             <Route path="/workflows/*" element={<WorkflowsTab />} />
             <Route path="/executions" element={<ExecutionsTab />} />

@@ -1,29 +1,41 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { WorkflowsProvider } from '../../store/workflows.store';
-import { ExecutionsProvider } from '../../store/executions.store';
-import { WorkflowGrid } from '../workflows/WorkflowGrid';
-import { ExecutionsTab } from '../executions/ExecutionsTab';
+import { ExecutionsProvider, useExecutions } from '../../store/executions.store';
+import { NewTaskView } from '../executions/NewTaskView';
 
-test('Run on a card pre-loads that workflow into the executions input', async () => {
-  render(
-    <WorkflowsProvider><ExecutionsProvider>
-      <MemoryRouter initialEntries={['/workflows']}>
-        <Routes>
-          <Route path="/workflows" element={<WorkflowGrid />} />
-          <Route path="/executions" element={<ExecutionsTab />} />
-        </Routes>
-      </MemoryRouter>
-    </ExecutionsProvider></WorkflowsProvider>
+vi.mock('../../components/Mermaid', () => ({ Mermaid: () => null }));
+
+// Surfaces the active task so the test can observe the workflow handoff without
+// depending on which execution view is currently mounted.
+function ActiveProbe(): JSX.Element {
+  const { active } = useExecutions();
+  return (
+    <div data-testid="active-run">
+      {active ? `${active.title}::${active.messages[0]?.text ?? ''}` : 'none'}
+    </div>
   );
-  await userEvent.click(screen.getAllByRole('button', { name: /^Run$/i })[0]);
-  // preload() writes a `/Name ` mention into pendingPrompt, which Conversation's
-  // PromptInput prefills from — confirmed via executions.store.tsx's preload().
-  // NOTE: jest-dom's `toHaveValue` does not support asymmetric matchers
-  // (expect.stringContaining) despite the brief's example — it compares the
-  // literal string, so we read `.value` directly instead.
-  const textbox = screen.getByRole('textbox') as HTMLInputElement;
-  expect(textbox.value).toContain('/');
-  expect(textbox.value).toBe('/Deploy Check ');
+}
+
+test('clicking a workflow card on the welcome view starts that workflow run', async () => {
+  render(
+    <WorkflowsProvider>
+      <ExecutionsProvider>
+        <MemoryRouter>
+          <NewTaskView />
+          <ActiveProbe />
+        </MemoryRouter>
+      </ExecutionsProvider>
+    </WorkflowsProvider>
+  );
+
+  // Cards are click-to-run on the welcome view; clicking the card body bubbles
+  // to the card's onClick, which calls runWorkflow('Deploy Check').
+  await userEvent.click(screen.getByRole('heading', { name: 'Deploy Check' }));
+
+  await waitFor(() =>
+    expect(screen.getByTestId('active-run')).toHaveTextContent('Deploy Check::/Deploy Check')
+  );
 });

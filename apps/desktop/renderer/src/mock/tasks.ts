@@ -5,6 +5,8 @@ export const SEED_TASKS: Task[] = [
     id: 'task-1',
     title: 'Deploy Check',
     createdRelative: 'Just now',
+    workflowId: 'deploy-check',
+    pinned: true,
     messages: [
       {
         id: 'task-1-msg-1',
@@ -69,6 +71,7 @@ export const SEED_TASKS: Task[] = [
     id: 'task-3',
     title: 'Onboard Client — Acme Corp',
     createdRelative: 'Yesterday',
+    workflowId: 'onboard-client',
     messages: [
       {
         id: 'task-3-msg-1',
@@ -111,6 +114,7 @@ export const SEED_TASKS: Task[] = [
     id: 'task-4',
     title: 'Why did Price Monitor fail?',
     createdRelative: '3 days ago',
+    workflowId: 'price-monitor',
     messages: [
       {
         id: 'task-4-msg-1',

@@ -2,18 +2,21 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AppShell } from './AppShell';
 import { ThemeProvider } from '../store/theme.store';
+import { ExecutionsProvider } from '../store/executions.store';
 
-test('renders brand and three tabs in lifecycle order', () => {
+test('renders the Flow Agent brand and its children', () => {
   render(
     <ThemeProvider>
-      <MemoryRouter>
-        <AppShell>
-          <div />
-        </AppShell>
-      </MemoryRouter>
+      <ExecutionsProvider>
+        <MemoryRouter>
+          <AppShell>
+            <div>child-content</div>
+          </AppShell>
+        </MemoryRouter>
+      </ExecutionsProvider>
     </ThemeProvider>
   );
-  const tabs = screen.getAllByRole('tab').map((t) => t.textContent);
-  expect(tabs).toEqual(['Record', 'Workflows', 'Executions']);
-  expect(screen.getByText('WorkflowPilot')).toBeInTheDocument();
+
+  expect(screen.getByText('Flow Agent')).toBeInTheDocument();
+  expect(screen.getByText('child-content')).toBeInTheDocument();
 });

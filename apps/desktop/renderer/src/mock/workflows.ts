@@ -238,6 +238,12 @@ export const SEED_WORKFLOWS: Workflow[] = [
     mermaid: deployCheckMermaid,
     summary: 'all healthy · 4 steps · 1.2s',
     draft: false,
+    steps: [
+      'Fetch Latest GitHub Actions Run',
+      'Check Conclusion',
+      'Query Sentry Errors (24h)',
+      'Post Summary to Slack',
+    ],
   },
   {
     id: 'onboard-client',
@@ -253,6 +259,11 @@ export const SEED_WORKFLOWS: Workflow[] = [
     mermaid: onboardClientMermaid,
     summary: '1 client onboarded · 3 steps · 2.4s',
     draft: false,
+    steps: [
+      'Query Notion for New Clients',
+      'Create Welcome Notion Page',
+      'Send Welcome Email via Gmail',
+    ],
   },
   {
     id: 'price-monitor',
@@ -268,5 +279,16 @@ export const SEED_WORKFLOWS: Workflow[] = [
     mermaid: priceMonitorMermaid,
     summary: 'page structure changed · price parse failed · 2 steps · 0.8s',
     draft: false,
+    steps: [
+      'Fetch Product Page (Web)',
+      'Parse Current Price',
+      'Check Below Threshold',
+      'Send Alert Email (Gmail)',
+    ],
   },
 ];
+
+export function workflowIdForName(name: string): string | undefined {
+  const q = name.trim().toLowerCase();
+  return SEED_WORKFLOWS.find((w) => w.name.toLowerCase() === q)?.id;
+}

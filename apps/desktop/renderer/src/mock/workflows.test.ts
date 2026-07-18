@@ -1,4 +1,4 @@
-import { SEED_WORKFLOWS } from './workflows';
+import { SEED_WORKFLOWS, workflowIdForName } from './workflows';
 
 test('seeds three workflows with required fields', () => {
   expect(SEED_WORKFLOWS).toHaveLength(3);
@@ -8,5 +8,12 @@ test('seeds three workflows with required fields', () => {
     expect(w.mermaid).toMatch(/flowchart/);
     expect(w.services.length).toBeGreaterThan(0);
     expect(w.draft).toBe(false);
+    expect(w.steps.length).toBeGreaterThan(0);
   }
+});
+
+test('workflowIdForName resolves names case-insensitively', () => {
+  expect(workflowIdForName('deploy check')).toBe('deploy-check');
+  expect(workflowIdForName('Price Monitor')).toBe('price-monitor');
+  expect(workflowIdForName('nope')).toBeUndefined();
 });
