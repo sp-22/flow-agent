@@ -20,6 +20,6 @@ test('walks welcome → adapter → gates on selecting and testing an adapter', 
   // Detected adapters render as cards; pick Claude then test it.
   await userEvent.click(await screen.findByTestId('adapter-card-claude'));
   await userEvent.click(screen.getByRole('button', { name: /Test adapter/i }));
-  expect(await screen.findByText(/Adapter works/i)).toBeInTheDocument();
+  expect(await screen.findByText(/Connection verified/i)).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /Continue/i })).toBeEnabled();
 });
