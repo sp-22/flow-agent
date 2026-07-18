@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/Button';
 import { Badge } from '../../components/Badge';
 import { useWorkflows } from '../../store/workflows.store';
+import { useExecutions, type ExecutionsContextValue } from '../../store/executions.store';
 import { SEED_RUNS } from '../../mock/runs';
 import { SpecFlow } from './panels/SpecFlow';
 import { SpecCode } from './panels/SpecCode';
@@ -13,10 +14,23 @@ type TabName = 'Flow' | 'Code' | 'Runs';
 
 const TABS: TabName[] = ['Flow', 'Code', 'Runs'];
 
+// ExecutionsProvider isn't mounted in every host of this editor (e.g. the
+// standalone WorkflowEditor unit test). Reading the hook defensively lets the
+// Run hand-off degrade to a plain navigate instead of crashing the render.
+function useOptionalExecutions(): ExecutionsContextValue | null {
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    return useExecutions();
+  } catch {
+    return null;
+  }
+}
+
 export function WorkflowEditor(): JSX.Element {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getById, save, update } = useWorkflows();
+  const executions = useOptionalExecutions();
   const [tab, setTab] = React.useState<TabName>('Flow');
 
   const workflow = id ? getById(id) : undefined;
@@ -30,7 +44,10 @@ export function WorkflowEditor(): JSX.Element {
   }
 
   const runs = SEED_RUNS.filter((run) => run.workflowId === workflow.id);
-  const goToExecutions = () => navigate('/executions');
+  const goToExecutions = () => {
+    executions?.preload(workflow.name);
+    navigate('/executions');
+  };
 
   return (
     <div className="flex h-full flex-col">

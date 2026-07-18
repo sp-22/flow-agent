@@ -3,10 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { useWorkflows } from '../../store/workflows.store';
+import { useExecutions, type ExecutionsContextValue } from '../../store/executions.store';
 import { WorkflowCard } from './WorkflowCard';
+
+// ExecutionsProvider isn't mounted in every host of this grid (e.g. the
+// standalone WorkflowGrid unit test). Reading the hook defensively lets the
+// Run hand-off degrade to a plain navigate instead of crashing the render.
+function useOptionalExecutions(): ExecutionsContextValue | null {
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    return useExecutions();
+  } catch {
+    return null;
+  }
+}
 
 export function WorkflowGrid(): JSX.Element {
   const { workflows } = useWorkflows();
+  const executions = useOptionalExecutions();
   const navigate = useNavigate();
   const [query, setQuery] = React.useState('');
 
@@ -50,7 +64,10 @@ export function WorkflowGrid(): JSX.Element {
               key={workflow.id}
               workflow={workflow}
               onOpen={() => navigate(`/workflows/${workflow.id}`)}
-              onRun={() => navigate('/executions')}
+              onRun={() => {
+                executions?.preload(workflow.name);
+                navigate('/executions');
+              }}
             />
           ))}
         </div>

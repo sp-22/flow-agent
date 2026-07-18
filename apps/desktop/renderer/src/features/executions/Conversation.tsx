@@ -1,5 +1,8 @@
 import * as React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useExecutions } from '../../store/executions.store';
+import { useWorkflows } from '../../store/workflows.store';
+import { EmptyState } from '../../components/EmptyState';
 import { NewTaskView } from './NewTaskView';
 import { ChatMessage } from './ChatMessage';
 import { WorkflowChips } from './WorkflowChips';
@@ -7,6 +10,8 @@ import { PromptInput } from './PromptInput';
 
 export function Conversation(): JSX.Element {
   const { active, pendingPrompt, setPendingPrompt, send } = useExecutions();
+  const { workflows } = useWorkflows();
+  const navigate = useNavigate();
   const bottomRef = React.useRef<HTMLDivElement>(null);
 
   const messages = active?.messages ?? [];
@@ -16,6 +21,15 @@ export function Conversation(): JSX.Element {
   }, [messages.length]);
 
   if (!active || messages.length === 0) {
+    if (workflows.length === 0) {
+      return (
+        <EmptyState
+          title="No workflows yet — record one to run it here"
+          actionLabel="Record your first workflow"
+          onAction={() => navigate('/record')}
+        />
+      );
+    }
     return <NewTaskView />;
   }
 

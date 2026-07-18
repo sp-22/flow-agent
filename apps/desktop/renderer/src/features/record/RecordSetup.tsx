@@ -16,7 +16,9 @@ export function RecordSetup({
   proxyDown = false,
 }: RecordSetupProps): JSX.Element {
   const [micLevel, setMicLevel] = React.useState(0);
+  const [proxyFixed, setProxyFixed] = React.useState(false);
   const micOk = micLevel > 0;
+  const effectiveProxyDown = proxyDown && !proxyFixed;
 
   React.useEffect(() => {
     const unsubscribe = subscribeMicLevel((level) => {
@@ -25,7 +27,7 @@ export function RecordSetup({
     return unsubscribe;
   }, []);
 
-  const canStart = micOk && !proxyDown;
+  const canStart = micOk && !effectiveProxyDown;
 
   return (
     <div className="mx-auto flex max-w-md flex-col gap-6 py-16">
@@ -69,9 +71,16 @@ export function RecordSetup({
         and why. The more you explain, the better the automation.
       </p>
 
-      {proxyDown ? (
+      {effectiveProxyDown ? (
         <p className="text-xs text-signal">
-          Local proxy is unreachable — reconnect before recording.
+          Local proxy is unreachable — recording needs it to capture requests.{' '}
+          <button
+            type="button"
+            onClick={() => setProxyFixed(true)}
+            className="underline decoration-dotted underline-offset-2 hover:text-heading"
+          >
+            Proxy not running — fix
+          </button>
         </p>
       ) : null}
 
