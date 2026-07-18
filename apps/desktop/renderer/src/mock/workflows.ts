@@ -1,4 +1,5 @@
 import type { Workflow } from '../types';
+import { DEPLOY_CHECK_FLOW, ONBOARD_CLIENT_FLOW, PRICE_MONITOR_FLOW } from './flow-graphs';
 
 const deployCheckSkillPy = `import os
 import sys
@@ -236,6 +237,7 @@ export const SEED_WORKFLOWS: Workflow[] = [
     skillPy: deployCheckSkillPy,
     manifestYaml: deployCheckManifestYaml,
     mermaid: deployCheckMermaid,
+    flow: DEPLOY_CHECK_FLOW,
     summary: 'all healthy · 4 steps · 1.2s',
     draft: false,
   },
@@ -251,6 +253,7 @@ export const SEED_WORKFLOWS: Workflow[] = [
     skillPy: onboardClientSkillPy,
     manifestYaml: onboardClientManifestYaml,
     mermaid: onboardClientMermaid,
+    flow: ONBOARD_CLIENT_FLOW,
     summary: '1 client onboarded · 3 steps · 2.4s',
     draft: false,
   },
@@ -266,6 +269,7 @@ export const SEED_WORKFLOWS: Workflow[] = [
     skillPy: priceMonitorSkillPy,
     manifestYaml: priceMonitorManifestYaml,
     mermaid: priceMonitorMermaid,
+    flow: PRICE_MONITOR_FLOW,
     summary: 'page structure changed · price parse failed · 2 steps · 0.8s',
     draft: false,
   },
