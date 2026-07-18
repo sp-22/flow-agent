@@ -9,6 +9,7 @@
     "outDir": "dist-electron",
     "noEmit": false
   },
-  "include": ["electron"]
+  "include": [
+    "electron"
+  ]
 }
-
