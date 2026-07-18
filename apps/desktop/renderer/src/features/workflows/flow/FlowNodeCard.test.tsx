@@ -15,11 +15,11 @@ const node: FlowNode = {
   y: 0,
 };
 
-test('renders eyebrow, title, and passed status', () => {
+test('renders eyebrow and title without run status', () => {
   render(<FlowNodeCard node={node} selected={false} onSelect={() => {}} />);
   expect(screen.getByText(/ACTION/i)).toBeInTheDocument();
   expect(screen.getByText('Query errors (last 24h)')).toBeInTheDocument();
-  expect(screen.getByText(/Passed/i)).toBeInTheDocument();
+  expect(screen.queryByText(/Passed/i)).not.toBeInTheDocument();
 });
 
 test('invokes onSelect when clicked', async () => {

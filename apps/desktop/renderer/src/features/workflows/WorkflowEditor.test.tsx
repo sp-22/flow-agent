@@ -32,9 +32,9 @@ test('shows left spec tabs', () => {
 
 test('refactor is closed by default and opens from CTA', async () => {
   renderAt('deploy-check');
-  expect(screen.getByRole('button', { name: '+ Refactor' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /Refactor/i })).toBeInTheDocument();
   expect(screen.queryByPlaceholderText(/Describe a change/i)).not.toBeInTheDocument();
-  await userEvent.click(screen.getByRole('button', { name: '+ Refactor' }));
+  await userEvent.click(screen.getByRole('button', { name: /Refactor/i }));
   expect(screen.getByPlaceholderText(/Describe a change/i)).toBeInTheDocument();
 });
 

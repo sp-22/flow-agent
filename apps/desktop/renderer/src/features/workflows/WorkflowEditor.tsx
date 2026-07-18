@@ -1,12 +1,11 @@
 import * as React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Sparkles, SquareTerminal, Play } from 'lucide-react';
 import { Button } from '../../components/Button';
-import { Badge } from '../../components/Badge';
 import { useWorkflows } from '../../store/workflows.store';
 import { useExecutions, type ExecutionsContextValue } from '../../store/executions.store';
-import { runTask } from '../../services/execution.service';
 import { SEED_RUNS } from '../../mock/runs';
-import type { Run, RunStep } from '../../types';
+import type { Run } from '../../types';
 import { SpecFlow } from './panels/SpecFlow';
 import { SpecCode } from './panels/SpecCode';
 import { SpecRuns } from './panels/SpecRuns';
@@ -34,7 +33,7 @@ export function WorkflowEditor(): JSX.Element {
   const { getById, save, update } = useWorkflows();
   const executions = useOptionalExecutions();
   const [tab, setTab] = React.useState<TabName>('Flow');
-  const [runs, setRuns] = React.useState<Run[]>(() => SEED_RUNS.filter((r) => r.workflowId === id));
+  const [runs] = React.useState<Run[]>(() => SEED_RUNS.filter((r) => r.workflowId === id));
   const [refactorOpen, setRefactorOpen] = React.useState(false);
   const [selectedNodeId, setSelectedNodeId] = React.useState<string | null>(null);
 
@@ -72,41 +71,6 @@ export function WorkflowEditor(): JSX.Element {
     navigate('/executions');
   };
 
-  const runInline = (): void => {
-    setTab('Runs');
-
-    const runId = `run-inline-${Date.now()}`;
-    const newRun: Run = {
-      id: runId,
-      workflowId: workflow.id,
-      health: 'go',
-      steps: [],
-      durationMs: 0,
-      at: new Date().toISOString(),
-    };
-    const startedAt = Date.now();
-    setRuns((prev) => [newRun, ...prev]);
-
-    void runTask(workflow.name, (step: RunStep) => {
-      setRuns((prev) =>
-        prev.map((r) => (r.id === runId ? { ...r, steps: [...r.steps, step] } : r))
-      );
-    }).then((summary) => {
-      setRuns((prev) =>
-        prev.map((r) =>
-          r.id === runId
-            ? {
-                ...r,
-                health: 'go',
-                durationMs: Date.now() - startedAt,
-                steps: [...r.steps, { label: 'Summary', status: 'done', detail: summary }],
-              }
-            : r
-        )
-      );
-    });
-  };
-
   return (
     <div className="flex h-full flex-col">
       <header className="flex items-center justify-between gap-3 border-b border-wire p-4">
@@ -117,7 +81,8 @@ export function WorkflowEditor(): JSX.Element {
             </h1>
             <div className="flex items-center gap-2">
               <Button variant="secondary" size="md" onClick={() => setRefactorOpen((v) => !v)}>
-                + Refactor
+                <Sparkles className="h-4 w-4" aria-hidden="true" />
+                Refactor
               </Button>
               <Button variant="primary" size="md" onClick={() => save(workflow.id)}>
                 Save
@@ -132,19 +97,19 @@ export function WorkflowEditor(): JSX.Element {
                 onChange={(e) => update(workflow.id, { name: e.target.value })}
                 className="rounded-md border border-transparent bg-transparent px-1 font-display text-lg font-medium text-heading outline-none hover:border-wire focus-visible:border-wire-hover"
               />
-              <Badge tone={workflow.health} dot>
-                {workflow.health}
-              </Badge>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="secondary" size="md" onClick={() => setRefactorOpen((v) => !v)}>
-                + Refactor
+                <Sparkles className="h-4 w-4" aria-hidden="true" />
+                Refactor
               </Button>
               <Button variant="secondary" size="md" onClick={goToExecutions}>
-                Run in Console
+                <SquareTerminal className="h-4 w-4" aria-hidden="true" />
+                Open in console
               </Button>
-              <Button variant="primary" size="md" onClick={runInline}>
-                Run
+              <Button variant="primary" size="md" onClick={goToExecutions}>
+                <Play className="h-4 w-4" aria-hidden="true" />
+                Execute
               </Button>
             </div>
           </>
@@ -172,7 +137,7 @@ export function WorkflowEditor(): JSX.Element {
               </button>
             ))}
           </div>
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex flex-1 flex-col overflow-y-auto p-4">
             {tab === 'Flow' ? (
               <SpecFlow
                 graph={workflow.flow}

@@ -15,7 +15,7 @@ export function SpecFlow({
   onSelect,
 }: SpecFlowProps): JSX.Element {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex h-full min-h-0 flex-1 flex-col gap-3">
       {summary ? <p className="text-sm text-body">{summary}</p> : null}
       <FlowCanvas graph={graph} selectedNodeId={selectedNodeId} onSelect={onSelect} />
     </div>
