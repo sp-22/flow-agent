@@ -1,7 +1,9 @@
 import { Button } from '../../../components/Button';
 
+export type OnboardingExit = 'record' | 'explore';
+
 export interface StepFirstRecordProps {
-  onDone(): void;
+  onDone(dest: OnboardingExit): void;
 }
 
 export function StepFirstRecord({ onDone }: StepFirstRecordProps): JSX.Element {
@@ -12,12 +14,12 @@ export function StepFirstRecord({ onDone }: StepFirstRecordProps): JSX.Element {
         Your API key and local proxy are ready. Record your first workflow and WorkflowPilot
         will turn it into a runnable automation.
       </p>
-      <Button variant="primary" size="lg" onClick={onDone}>
+      <Button variant="primary" size="lg" onClick={() => onDone('record')}>
         Record your first workflow
       </Button>
       <button
         type="button"
-        onClick={onDone}
+        onClick={() => onDone('explore')}
         className="text-xs text-muted underline underline-offset-2 hover:text-body"
       >
         I'll explore first

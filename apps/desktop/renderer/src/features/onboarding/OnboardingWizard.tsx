@@ -4,12 +4,12 @@ import { useOnboarding } from '../../store/onboarding.store';
 import { StepWelcome } from './steps/StepWelcome';
 import { StepApiKey } from './steps/StepApiKey';
 import { StepProxyCert } from './steps/StepProxyCert';
-import { StepFirstRecord } from './steps/StepFirstRecord';
+import { StepFirstRecord, type OnboardingExit } from './steps/StepFirstRecord';
 
 const STEP_LABELS = ['Welcome', 'API Key', 'Proxy', 'Record'] as const;
 
 export interface OnboardingWizardProps {
-  onDone(): void;
+  onDone(dest: OnboardingExit): void;
 }
 
 export function OnboardingWizard({ onDone }: OnboardingWizardProps): JSX.Element {
