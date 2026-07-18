@@ -26,6 +26,34 @@ export interface Run {
   at: string;
 }
 
+export type FlowNodeKind = 'trigger' | 'action' | 'branch' | 'end';
+
+export interface FlowNode {
+  id: string;
+  kind: FlowNodeKind;
+  title: string;
+  subtitle?: string;
+  service?: ServiceName;
+  status?: 'passed' | 'failed' | 'idle';
+  durationLabel?: string;
+  /** Canvas position in px (top-left of card). */
+  x: number;
+  y: number;
+}
+
+export interface FlowEdge {
+  id: string;
+  from: string;
+  to: string;
+  label?: string;
+  tone?: 'neutral' | 'go' | 'hold' | 'signal';
+}
+
+export interface FlowGraph {
+  nodes: FlowNode[];
+  edges: FlowEdge[];
+}
+
 export interface Workflow {
   id: string;
   name: string;
@@ -38,6 +66,7 @@ export interface Workflow {
   skillPy: string;
   manifestYaml: string;
   mermaid: string;
+  flow: FlowGraph;
   summary: string;
   draft: boolean;
 }
