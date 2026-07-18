@@ -1,9 +1,9 @@
+import type { RunStep } from '../types';
 import { runTask } from './execution.service';
 
-test('streams progress lines then resolves a summary', async () => {
-  const lines: string[] = [];
-  const summary = await runTask('check staging', s => lines.push(s.label));
-  expect(lines.length).toBeGreaterThanOrEqual(2);
-  expect(typeof summary).toBe('string');
-  expect(summary.length).toBeGreaterThan(0);
+test('maps adapter events to RunSteps and resolves the summary', async () => {
+  const steps: RunStep[] = [];
+  const summary = await runTask('check staging', 'claude', (s) => steps.push(s), 'run-test-1');
+  expect(steps.length).toBeGreaterThanOrEqual(2);
+  expect(summary).toContain('re: "check staging"');
 });

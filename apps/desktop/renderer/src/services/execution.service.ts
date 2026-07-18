@@ -1,37 +1,27 @@
-import type { RunStep } from '../types';
-
-const STEP_DELAY_MS = 150;
-
-const RUN_STEPS: string[] = ['Gathering context', 'Running the automation', 'Verifying the result'];
-
-const CANNED_SUMMARIES: string[] = [
-  'All checks passed · no action needed · 3 steps',
-  'Completed successfully · 1 issue flagged for review · 3 steps',
-  'Task finished · summary posted to the team channel · 3 steps',
-];
+import type { AdapterEvent, AdapterId, RunStep } from '../types';
+import { runAdapter } from './adapter.service';
 
 /**
- * Streams a short sequence of RunSteps to `onLine` (each marked `done` as it
- * completes) then resolves with a canned summary string. Pure timer-based
- * stub — no real IO.
+ * Drives one adapter run for `prompt`, mapping streamed adapter events to
+ * `RunStep`s via `onLine`, and resolving with the run summary. Rejects on a
+ * terminal adapter error so the store can render a failed bubble.
  */
-export function runTask(prompt: string, onLine: (step: RunStep) => void): Promise<string> {
-  return new Promise(resolve => {
-    let index = 0;
-
-    const emitNext = (): void => {
-      if (index >= RUN_STEPS.length) {
-        const summary = CANNED_SUMMARIES[Math.floor(Math.random() * CANNED_SUMMARIES.length)] as string;
-        resolve(`${summary} · re: "${prompt}"`);
-        return;
-      }
-
-      const label = RUN_STEPS[index] as string;
-      onLine({ label, status: 'done' });
-      index += 1;
-      setTimeout(emitNext, STEP_DELAY_MS);
-    };
-
-    setTimeout(emitNext, STEP_DELAY_MS);
+export function runTask(
+  prompt: string,
+  adapter: AdapterId,
+  onLine: (step: RunStep) => void,
+  runId: string
+): Promise<string> {
+  return runAdapter(runId, { adapter, prompt }, (event: AdapterEvent) => {
+    if (event.type === 'status') {
+      onLine({ label: event.label, status: 'active' });
+    } else if (event.type === 'step') {
+      onLine({ label: event.label, status: event.status });
+    } else if (event.type === 'output') {
+      onLine({ label: event.text, status: 'done' });
+    }
+  }).then((res) => {
+    if (res.ok) return res.summary ?? 'Completed';
+    throw new Error(res.error ?? 'Adapter run failed');
   });
 }

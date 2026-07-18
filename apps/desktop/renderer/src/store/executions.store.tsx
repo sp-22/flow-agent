@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { SEED_TASKS } from '../mock/tasks';
 import { runTask } from '../services/execution.service';
+import { getSelectedAdapter } from '../services/adapter.service';
 import type { ChatMessage, Task } from '../types';
 
 export interface ExecutionsContextValue {
@@ -117,12 +118,17 @@ export function ExecutionsProvider({ children }: { children: React.ReactNode }):
       };
 
       const steps: NonNullable<ChatMessage['progress']> = [];
-      const summary = await runTask(trimmed, (step) => {
-        steps.push(step);
-        applyProgress([...steps]);
-      });
-
-      applyProgress([...steps], summary);
+      const runId = `${targetId}-${Date.now()}`;
+      try {
+        const summary = await runTask(trimmed, getSelectedAdapter(), (step) => {
+          steps.push(step);
+          applyProgress([...steps]);
+        }, runId);
+        applyProgress([...steps], summary);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Adapter run failed';
+        applyProgress([...steps], `⚠ ${message}`);
+      }
     },
     [activeId, draftTask]
   );
