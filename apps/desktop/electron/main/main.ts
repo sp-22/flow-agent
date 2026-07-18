@@ -1,7 +1,7 @@
 import { app, BrowserWindow, nativeImage } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { registerAdapterManager } from './adapter-manager';
+import { registerAdapterManager } from './adapter-manager.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function createWindow() {

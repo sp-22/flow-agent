@@ -3,7 +3,7 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseAdapterLine, type AdapterEvent, type AdapterInfo } from './adapter-protocol';
+import { parseAdapterLine, type AdapterEvent, type AdapterInfo } from './adapter-protocol.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
