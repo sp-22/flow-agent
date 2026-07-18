@@ -31,11 +31,21 @@ export function StepAdapter(): JSX.Element {
     setTesting(true);
     setTestError(null);
     try {
-      const ok = await testAdapter();
-      if (!ok) setTestError('Adapter test failed — check the CLI is installed and signed in.');
+      const res = await testAdapter();
+      if (!res.ok) {
+        setTestError(res.error ?? 'Adapter test failed — check the CLI is installed and signed in.');
+      }
     } finally {
       setTesting(false);
     }
+  };
+
+  const statusFor = (id: AdapterId): { label: string; tone: string } => {
+    const info = infoFor(id);
+    if (!info) return { label: 'Not detected', tone: 'text-muted' };
+    if (!info.installed) return { label: 'Not detected', tone: 'text-muted' };
+    if (!info.authenticated) return { label: 'Sign-in needed', tone: 'text-hold' };
+    return { label: 'Ready', tone: 'text-go' };
   };
 
   return (
@@ -43,27 +53,24 @@ export function StepAdapter(): JSX.Element {
       <h2 className="font-display text-lg text-heading">Choose your adapter</h2>
       <p className="text-sm text-muted">
         Flow Agent drives an agentic CLI you already use. Pick one — it runs on this device
-        using the CLI&apos;s own login. No API key needed.
+        using the CLI&apos;s own login. No API key needed. Use <span className="text-body">Test adapter</span> to
+        confirm it works.
       </p>
 
       <div className="flex flex-col gap-2">
         {ADAPTERS.map(({ id, name, hint }) => {
-          const info = infoFor(id);
-          const installed = info?.installed ?? false;
-          const authed = info?.authenticated ?? false;
           const selected = selectedAdapter === id;
+          const status = statusFor(id);
           return (
             <button
               key={id}
               type="button"
               data-testid={`adapter-card-${id}`}
               aria-pressed={selected}
-              disabled={!installed}
               onClick={() => selectAdapter(id)}
               className={
                 'flex items-center justify-between rounded-md border px-3 py-2.5 text-left transition-colors ' +
-                (selected ? 'border-wire-hover bg-elevated' : 'border-wire bg-surface hover:border-wire-hover') +
-                ' disabled:opacity-40 disabled:cursor-not-allowed'
+                (selected ? 'border-wire-hover bg-elevated' : 'border-wire bg-surface hover:border-wire-hover')
               }
             >
               <span className="flex flex-col gap-0.5">
@@ -73,9 +80,7 @@ export function StepAdapter(): JSX.Element {
                 </span>
                 <span className="font-mono text-xs text-muted">{hint}</span>
               </span>
-              <span className={`text-xs ${installed ? (authed ? 'text-go' : 'text-hold') : 'text-muted'}`}>
-                {installed ? (authed ? 'Ready' : 'Sign-in needed') : 'Not installed'}
-              </span>
+              <span className={`text-xs ${status.tone}`}>{status.label}</span>
             </button>
           );
         })}

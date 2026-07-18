@@ -11,5 +11,8 @@
   },
   "include": [
     "electron"
+  ],
+  "exclude": [
+    "**/*.test.ts"
   ]
 }

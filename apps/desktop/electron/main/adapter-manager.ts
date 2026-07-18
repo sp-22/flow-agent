@@ -20,11 +20,34 @@ function resolvePython(): string {
   return 'python3';
 }
 
+/**
+ * GUI/Electron processes launch with a reduced PATH that omits user-level bin
+ * dirs (e.g. ~/.local/bin, /opt/homebrew/bin) where the agentic CLIs live, so
+ * a spawned Python's shutil.which() can't find them. Merge the common install
+ * locations onto the inherited PATH so detect/test/run see the CLIs.
+ */
+function augmentedPath(): string {
+  const home = process.env.HOME ?? '';
+  const extras = [
+    '/opt/homebrew/bin',
+    '/usr/local/bin',
+    home ? path.join(home, '.local', 'bin') : '',
+    '/usr/bin',
+    '/bin',
+    '/usr/sbin',
+    '/sbin',
+  ].filter(Boolean);
+  const current = (process.env.PATH ?? '').split(path.delimiter).filter(Boolean);
+  const merged = [...current];
+  for (const dir of extras) if (!merged.includes(dir)) merged.push(dir);
+  return merged.join(path.delimiter);
+}
+
 function spawnRuntime(args: string[]): ChildProcess {
   const dir = runtimeDir();
   return spawn(resolvePython(), ['-m', 'flow_runtime', ...args], {
     cwd: dir,
-    env: { ...process.env, PYTHONPATH: path.join(dir, 'src') },
+    env: { ...process.env, PATH: augmentedPath(), PYTHONPATH: path.join(dir, 'src') },
   });
 }
 

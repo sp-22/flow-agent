@@ -1,5 +1,5 @@
 import * as React from 'react';
-import type { AdapterId, AdapterInfo } from '../types';
+import type { AdapterActionResult, AdapterId, AdapterInfo } from '../types';
 import {
   detectAdapters as detectAdaptersSvc,
   testAdapter as testAdapterSvc,
@@ -18,7 +18,7 @@ export interface OnboardingContextValue {
   certTrusted: boolean;
   detectAdapters(): Promise<void>;
   selectAdapter(id: AdapterId): void;
-  testAdapter(): Promise<boolean>;
+  testAdapter(): Promise<AdapterActionResult>;
   verifyCert(): Promise<boolean>;
   finish(): void;
 }
@@ -68,11 +68,11 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }):
     persistSelectedAdapter(id);
   }, []);
 
-  const testAdapter = React.useCallback(async (): Promise<boolean> => {
-    if (!selectedAdapter) return false;
+  const testAdapter = React.useCallback(async (): Promise<AdapterActionResult> => {
+    if (!selectedAdapter) return { ok: false, error: 'No adapter selected' };
     const res = await testAdapterSvc(selectedAdapter);
     setAdapterTested(res.ok);
-    return res.ok;
+    return res;
   }, [selectedAdapter]);
 
   const verifyCert = React.useCallback((): Promise<boolean> => {
