@@ -1,15 +1,23 @@
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { ThemeProvider } from './store/theme.store';
+import { AppShell } from './components/AppShell';
+
 export default function App() {
   return (
-    <main className="min-h-screen bg-base text-body">
-      <section className="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-8">
-        <p className="mb-3 font-mono text-sm text-muted">Desktop scaffold</p>
-        <h1 className="font-display text-4xl font-semibold text-heading">Flow Agent</h1>
-        <p className="mt-4 max-w-2xl text-base leading-7">
-          Record browser workflows, compile them into reusable agent skills, and run them through
-          local workers with clear human approval points.
-        </p>
-      </section>
-    </main>
+    <div data-testid="app-root">
+      <ThemeProvider>
+        <BrowserRouter>
+          <AppShell>
+            <Routes>
+              <Route path="/" element={<Navigate to="/workflows" replace />} />
+              <Route path="/record" element={<div>Record</div>} />
+              <Route path="/workflows" element={<div>Workflows</div>} />
+              <Route path="/workflows/:id" element={<div>Workflow Detail</div>} />
+              <Route path="/executions" element={<div>Executions</div>} />
+            </Routes>
+          </AppShell>
+        </BrowserRouter>
+      </ThemeProvider>
+    </div>
   );
 }
-
