@@ -1,6 +1,18 @@
 import * as React from 'react';
+import { X } from 'lucide-react';
 import { Button } from '../../../components/Button';
 import { requestRefactor, type DiffPatch } from '../../../services/refactor.service';
+
+const INTRO_COPY = "Describe a change to this step and I'll draft a diff you can apply or discard.";
+const PLACEHOLDER = 'Describe a change to this step…';
+
+export interface RefactorChatProps {
+  onApply(patch: DiffPatch): void;
+  selectedStepTitle?: string | null;
+  onClearStep?(): void;
+  onClose?(): void;
+  suggestions?: string[];
+}
 
 interface ChatEntry {
   id: string;
@@ -14,13 +26,10 @@ function nextId(prefix: string): string {
   return `${prefix}-${entryCounter}`;
 }
 
-export function RefactorChat(props: { onApply(patch: DiffPatch): void }): JSX.Element {
+export function RefactorChat(props: RefactorChatProps): JSX.Element {
+  const { onApply, selectedStepTitle, onClearStep, onClose, suggestions } = props;
   const [messages, setMessages] = React.useState<ChatEntry[]>([
-    {
-      id: nextId('seed'),
-      role: 'agent',
-      text: 'Ask for a change and I’ll propose a diff you can apply or discard.',
-    },
+    { id: nextId('seed'), role: 'agent', text: INTRO_COPY },
   ]);
   const [instruction, setInstruction] = React.useState('');
   const [pendingPatch, setPendingPatch] = React.useState<DiffPatch | null>(null);
@@ -31,11 +40,12 @@ export function RefactorChat(props: { onApply(patch: DiffPatch): void }): JSX.El
     const trimmed = instruction.trim();
     if (!trimmed || isLoading) return;
 
-    setMessages((prev) => [...prev, { id: nextId('user'), role: 'user', text: trimmed }]);
+    const userText = selectedStepTitle ? `[@${selectedStepTitle}] ${trimmed}` : trimmed;
+    setMessages((prev) => [...prev, { id: nextId('user'), role: 'user', text: userText }]);
     setInstruction('');
     setIsLoading(true);
 
-    requestRefactor(trimmed).then((patch) => {
+    requestRefactor(userText).then((patch) => {
       setMessages((prev) => [...prev, { id: nextId('agent'), role: 'agent', text: patch.explanation }]);
       setPendingPatch(patch);
       setIsLoading(false);
@@ -44,7 +54,7 @@ export function RefactorChat(props: { onApply(patch: DiffPatch): void }): JSX.El
 
   const handleApply = () => {
     if (!pendingPatch) return;
-    props.onApply(pendingPatch);
+    onApply(pendingPatch);
     setMessages((prev) => [...prev, { id: nextId('agent'), role: 'agent', text: 'Applied the change.' }]);
     setPendingPatch(null);
   };
@@ -56,7 +66,19 @@ export function RefactorChat(props: { onApply(patch: DiffPatch): void }): JSX.El
 
   return (
     <div className="flex h-full flex-col gap-3 p-4">
-      <h2 className="font-display text-sm font-medium text-heading">Refactor</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-sm font-medium text-heading">Refactor</h2>
+        {onClose ? (
+          <button
+            type="button"
+            aria-label="Close refactor"
+            onClick={onClose}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted transition-colors hover:bg-elevated hover:text-body"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
+      </div>
 
       <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
         {messages.map((message) => (
@@ -73,6 +95,24 @@ export function RefactorChat(props: { onApply(patch: DiffPatch): void }): JSX.El
           </div>
         ))}
         {isLoading ? <p className="font-mono text-xs text-muted">Thinking…</p> : null}
+
+        {suggestions && suggestions.length > 0 ? (
+          <div className="flex flex-col gap-1.5">
+            <p className="font-mono text-xs text-muted">Try one of these</p>
+            <div className="flex flex-col gap-1.5">
+              {suggestions.map((suggestion, i) => (
+                <button
+                  key={`suggestion-${i}`}
+                  type="button"
+                  onClick={() => setInstruction(suggestion)}
+                  className="self-start rounded-md border border-wire bg-surface px-3 py-1.5 text-left text-xs text-body transition-colors hover:border-wire-hover hover:text-heading"
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         {pendingPatch ? (
           <div className="flex flex-col gap-2 rounded-md border border-wire bg-surface p-3">
@@ -100,17 +140,34 @@ export function RefactorChat(props: { onApply(patch: DiffPatch): void }): JSX.El
         ) : null}
       </div>
 
-      <form onSubmit={handleSend} className="flex gap-2">
-        <input
-          value={instruction}
-          onChange={(e) => setInstruction(e.target.value)}
-          placeholder="Ask for a change…"
-          disabled={isLoading}
-          className="h-9 flex-1 rounded-md border border-wire bg-surface px-3 text-sm text-body outline-none placeholder:text-muted focus-visible:border-wire-hover disabled:opacity-40"
-        />
-        <Button type="submit" variant="primary" size="md" disabled={isLoading || !instruction.trim()}>
-          Send
-        </Button>
+      <form onSubmit={handleSend} className="flex flex-col gap-2">
+        {selectedStepTitle ? (
+          <span className="inline-flex items-center gap-1 self-start rounded border border-wire bg-elevated px-2 py-0.5 font-mono text-xs text-heading">
+            @ {selectedStepTitle}
+            {onClearStep ? (
+              <button
+                type="button"
+                aria-label="Clear step"
+                onClick={onClearStep}
+                className="inline-flex items-center justify-center text-muted transition-colors hover:text-body"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            ) : null}
+          </span>
+        ) : null}
+        <div className="flex gap-2">
+          <input
+            value={instruction}
+            onChange={(e) => setInstruction(e.target.value)}
+            placeholder={PLACEHOLDER}
+            disabled={isLoading}
+            className="h-9 flex-1 rounded-md border border-wire bg-surface px-3 text-sm text-body outline-none placeholder:text-muted focus-visible:border-wire-hover disabled:opacity-40"
+          />
+          <Button type="submit" variant="primary" size="md" disabled={isLoading || !instruction.trim()}>
+            Send
+          </Button>
+        </div>
       </form>
     </div>
   );
